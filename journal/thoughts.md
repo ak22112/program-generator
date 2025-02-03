@@ -7,7 +7,7 @@ project.
 
 ### Done
 
-- Defined basic grammar of WHILE language
+- Defined basic grammar of WHILE language [here](https://github.com/ak22112/program-generator/blob/cd4496eafd5430505d9ddcfb48cc368ef8de3a3a/grammar/Grammar.agda).
 
 ### Questions
 
