@@ -13,9 +13,11 @@ project.
 
 - Should I use infix operators to define the grammer of the language?
 
-> | Pros          | Cons                                 |
-> | ------------- | ------------------------------------ |
-> | More readable | Probably harder for pattern matching |
-> |               | Harder to convert AST -> String      |
+  - | Pros          | Cons                                 |
+    | ------------- | ------------------------------------ |
+    | More readable | Probably harder for pattern matching |
+    |               | Harder to convert AST -> String      |
+
+  - Maybe only for some, e.g. `Seq`, `Assign`
 
 - Where can I start introducing dependent types?
