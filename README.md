@@ -1,2 +1,3 @@
 # program-generator
-Program Generator written in Agda
+
+Program Generator written in Agda.
