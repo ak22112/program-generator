@@ -8,7 +8,7 @@
 
 ### Questions
 
-- Should I use infix operators to define the langauge?
+- Should I use infix operators to define the grammer of the language?
 
 > | Pros          | Cons                                 |
 > | ------------- | ------------------------------------ |
