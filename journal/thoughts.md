@@ -1,5 +1,8 @@
 # Thoughts
 
+Keeping track of what I've done and what I'm thinking each day I work on this
+project.
+
 ## 03/02/2025
 
 ### Done
