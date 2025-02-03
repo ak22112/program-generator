@@ -1,7 +1,7 @@
 module program-generator.grammar.Grammar where
 
-open import Data.String
-open import Data.Nat
+open import Data.String using (String)
+open import Data.Nat using (ℕ)
 
 
 -- variables are just names
