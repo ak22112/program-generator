@@ -3,7 +3,7 @@
 Keeping track of what I've done and what I'm thinking each day I work on this
 project.
 
-## 03/02/2025
+## Week 3
 
 ### Done
 
@@ -21,3 +21,14 @@ project.
   - Maybe only for some, e.g. `Seq`, `Assign`
 
 - Where can I start introducing dependent types?
+
+  - create a `Program` data type that track the number of statements in the program
+    - this way you can verify length of program
+    - prevents infinite programs
+    - also can give the generator function a length as an argument
+
+- overall, struggling to work out where I need to do proofs
+  - it feels like the data types defining the grammar are already doing a lot
+    of the work
+  - this makes me think I need to come up with some properties that I want to
+    explicitly prove
