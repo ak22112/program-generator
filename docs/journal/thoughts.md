@@ -32,3 +32,19 @@ project.
     of the work
   - this makes me think I need to come up with some properties that I want to
     explicitly prove
+
+## Week 4
+
+- Hardcoding grammar meant that any generator would be correct by definition
+
+  - this means no need for dependent types
+
+- Instead, generator needs to be of the form:
+
+  ```agda
+  generator : (g : Grammar) (s : List Symbol) → String g s
+  ```
+
+  - takes in a grammer and a list of symbols
+  - returns a string over the grammar and symbols
+  - String is an indexed data type, dependent on both the grammar and the symbols
