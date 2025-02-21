@@ -2,7 +2,6 @@ module program-generator.start.Start where
 
 open import Agda.Builtin.List
 open import Agda.Builtin.String
-open import Data.Product using (_×_; _,_)
 
 
 -- terminal symbols
