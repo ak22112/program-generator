@@ -48,3 +48,15 @@ project.
   - takes in a grammer and a list of symbols
   - returns a string over the grammar and symbols
   - String is an indexed data type, dependent on both the grammar and the symbols
+
+- `String` needs to be defined like this:
+
+  ```agda
+  data String : (g : Grammar) → (s : List Symbol) → Set where
+  ```
+
+  - String is indexed by grammar
+
+### Questions
+
+- Should I say Symbols are the builtin `String` type or should I use a finite data type
