@@ -62,3 +62,10 @@ project.
 ### Questions
 
 - Should I say Symbols are the builtin `String` type or should I use a finite data type
+
+## 23/02/2025
+
+### Questions
+
+- Paramaterised vs indexed types?
+- Nice way of explaining the benefits of dependent types
