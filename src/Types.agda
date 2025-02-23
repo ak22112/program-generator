@@ -32,3 +32,11 @@ record Rule : Set where
   field
     lhs : NonTerminal
     rhs : List Symbol
+
+
+-- grammar (list of production rules)
+record Grammar : Set where
+
+  constructor grammar
+  field
+    rules : List Rule

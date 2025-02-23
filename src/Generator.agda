@@ -1,15 +1,7 @@
-module Grammar where
+module Generator where
 
 open import Types
 open import Agda.Builtin.List
-
-
--- grammar (list of production rules)
-record Grammar : Set where
-
-  constructor grammar
-  field
-    rules : List Rule
 
 
 -- concrete definition of an example grammar
