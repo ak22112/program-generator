@@ -1,5 +1,7 @@
 # Thoughts
 
+<!-- markdownlint-disable MD013 MD024-->
+
 Keeping track of what I've done and what I'm thinking each day I work on this
 project.
 
