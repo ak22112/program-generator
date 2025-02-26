@@ -74,6 +74,12 @@ data StringList g where
 
 
 
+-- haven't actually checked what this does; just used auto solver, seems to be ok
+extract : {g : Grammar} {x : NonTerminal} → ProgramString g x → String
+extract (prod r ys prf) = r .lhs .name
+
+
+
 
 -- concrete examples
 
