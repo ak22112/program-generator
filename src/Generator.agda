@@ -106,13 +106,21 @@ prf₁ = here refl
 
 
 r₂ : Rule
-r₂ = rule (nonTerm "X") (T (term "b") ∷ N (nonTerm "Y") ∷ [])
+r₂ = rule (nonTerm "Y") (T (term "c") ∷ N (nonTerm "Y") ∷ [])
 
 prf₂ : InGrammar G r₂
-prf₂ = there (here refl)
+prf₂ = there (there (there (here refl)))
 
   
 
 -- produce a program string (C-c C-a will fill the hole)
-p : ProgramString G (r₁ .lhs)
-p = prod r₁ {!!} (here refl)
+p₁ : ProgramString G (r₁ .lhs)
+p₁ = prod r₁ {!!} (here refl)
+
+-- another program string will hole filled in
+p₂ : ProgramString G (r₂ .lhs)
+p₂ = prod r₂ (skip (N (nonTerm "Y") ∷ [])
+               (cons []
+                (prod (rule (nonTerm "Y") (T (term "d") ∷ [])) (skip [] nil)
+                 (there (there (there (there (here refl))))))
+                nil)) (there (there (there (here refl))))
