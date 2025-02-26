@@ -2,9 +2,82 @@ module Generator where
 
 open import Types
 open import Agda.Builtin.List
+open import Agda.Builtin.String
+open import Agda.Builtin.Bool
+
+open import Data.Nat
+open import Data.List using (List; _∷_; [])
+open import Data.List.Membership.Propositional using (_∈_)
+open import Data.List.Relation.Unary.Any using (here; there)
+
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl)
 
 
--- concrete definition of an example grammar
+open Terminal
+open NonTerminal
+open Rule
+open Grammar
+
+
+-- check rule directly
+InGrammar : Grammar → Rule → Set
+InGrammar g r = r ∈ g .rules
+
+-- pass in lhs and rhs separately
+InGrammar′ : Grammar → NonTerminal → List Symbol → Set
+InGrammar′ g x xs = InGrammar g (rule x xs)
+
+
+
+-- forward declaration (this is to allow mutual recursive functions)
+data ProgramString  (g : Grammar) : NonTerminal → Set
+data ProgramString′ (g : Grammar) : NonTerminal → Set
+data StringList     (g : Grammar) : List Symbol → Set
+
+
+
+data ProgramString g where
+
+  prod : (r : Rule)
+       → (ys : StringList g (r .rhs))
+       → (prf : InGrammar g r)
+       → ProgramString g (r .lhs)
+
+
+
+data ProgramString′ g where
+
+  prod′ : (x : NonTerminal)
+        → (xs : List Symbol)
+        → (ys : StringList g xs)
+        → (prf : InGrammar′ g x xs)
+        → ProgramString′ g x
+
+
+
+
+data StringList g where
+
+  nil  : StringList g []
+  
+  cons : {x : NonTerminal}
+       → (xs : List Symbol)
+       → ProgramString g x
+       → StringList g xs
+       → StringList g (N x ∷ xs)
+       
+  skip : {x : Terminal}
+       → (xs : List Symbol)
+       → StringList g xs
+       → StringList g (T x ∷ xs)
+
+
+
+
+-- concrete examples
+
+-- grammar
 G : Grammar
 G = grammar
     (
@@ -15,3 +88,25 @@ G = grammar
       rule (nonTerm "Y") (T (term "d") ∷ [])                   ∷    -- Y → d
       []
     )
+
+
+
+-- rules and proofs they are in the grammar
+r₁ : Rule
+r₁ = rule (nonTerm "X") (T (term "a") ∷ N (nonTerm "X") ∷ [])
+
+prf₁ : InGrammar G r₁
+prf₁ = here refl
+
+
+r₂ : Rule
+r₂ = rule (nonTerm "X") (T (term "b") ∷ N (nonTerm "Y") ∷ [])
+
+prf₂ : InGrammar G r₂
+prf₂ = there (here refl)
+
+  
+
+-- produce a program string (C-c C-a will fill the hole)
+p : ProgramString G (r₁ .lhs)
+p = prod r₁ {!!} (here refl)
