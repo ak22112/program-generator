@@ -74,7 +74,8 @@ data StringList g where
 
 
 
--- haven't actually checked what this does; just used auto solver, seems to be ok
+-- TODO: make this work properly
+-- this is only looking at the lhs, needs to use rhs
 extract : {g : Grammar} {x : NonTerminal} → ProgramString g x → String
 extract (prod r ys prf) = r .lhs .name
 
