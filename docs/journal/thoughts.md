@@ -67,5 +67,6 @@ project.
 
 ### Questions
 
-- Paramaterised vs indexed types?
 - Nice way of explaining the benefits of dependent types
+- Who is the report written for? What level should it be aimed at?
+- Automatic proof finder (using decidability)
