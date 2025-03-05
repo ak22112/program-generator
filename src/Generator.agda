@@ -5,10 +5,12 @@ open import Agda.Builtin.List
 open import Agda.Builtin.String
 open import Agda.Builtin.Bool
 
-open import Data.Nat
-open import Data.List using (List; _∷_; [])
-open import Data.List.Membership.Propositional using (_∈_)
-open import Data.List.Relation.Unary.Any using (here; there)
+open import Data.List using ( List; _∷_; []; _++_ )
+open import Data.List.Membership.Propositional using ( _∈_ )
+open import Data.List.Relation.Unary.Any using ( here; there )
+
+-- beware potential conflicts in future???
+import Data.String.Base as String
 
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
@@ -59,25 +61,22 @@ data ProgramString′ g where
 
 data StringList g where
 
+  -- empty list
   nil  : StringList g []
-  
+
+  -- list where first element is a non-terminal, followed by a list xs of symbols
   cons : {x : NonTerminal}
        → (xs : List Symbol)
        → ProgramString g x
        → StringList g xs
        → StringList g (N x ∷ xs)
-       
+
+  -- list where first element is a non-terminal, followed by a list xs of symbols
   skip : {x : Terminal}
        → (xs : List Symbol)
        → StringList g xs
        → StringList g (T x ∷ xs)
 
-
-
--- TODO: make this work properly
--- this is only looking at the lhs, needs to use rhs
-extract : {g : Grammar} {x : NonTerminal} → ProgramString g x → String
-extract (prod r ys prf) = r .lhs .name
 
 
 
@@ -112,16 +111,53 @@ r₂ = rule (nonTerm "Y") (T (term "c") ∷ N (nonTerm "Y") ∷ [])
 prf₂ : InGrammar G r₂
 prf₂ = there (there (there (here refl)))
 
-  
 
--- produce a program string (C-c C-a will fill the hole)
+r₃ : Rule
+r₃ = rule (nonTerm "Y") (T (term "d") ∷ []) 
+
+-- produce a program string (X → a X → a ϵ → a)
 p₁ : ProgramString G (r₁ .lhs)
-p₁ = prod r₁ {!!} (here refl)
+p₁ = prod r₁ (skip (N (nonTerm "X") ∷ [])
+               (cons []
+                (prod (rule (nonTerm "X") []) nil (there (there (here refl))))
+                nil)) (here refl)
 
--- another program string will hole filled in
+-- another program string (Y → c Y → c d)
 p₂ : ProgramString G (r₂ .lhs)
 p₂ = prod r₂ (skip (N (nonTerm "Y") ∷ [])
                (cons []
                 (prod (rule (nonTerm "Y") (T (term "d") ∷ [])) (skip [] nil)
                  (there (there (there (there (here refl))))))
                 nil)) (there (there (there (here refl))))
+
+
+-- another program string (Y → d)
+p₃ : ProgramString G (r₃ .lhs)
+p₃ = prod r₃ (skip [] nil) (there (there (there (there (here refl)))))
+
+
+-- get actual string
+extract : {g : Grammar} {x : NonTerminal} → ProgramString g x → String
+extract prgStr = String.concat (extractStringList prgStr)
+  where
+  
+    extractStringList : {g : Grammar} {x : NonTerminal} → ProgramString g x → List String
+    extractStringList (prod r ys prf) = processStringList ys
+      where
+      
+        extractTerminals : List Symbol → List String
+        extractTerminals []         = []
+        extractTerminals (T t ∷ xs) = t .name ∷ extractTerminals xs  -- extract terminal symbols
+        extractTerminals (N _ ∷ xs) = extractTerminals xs            -- ignore nonterminals
+
+        -- process StringList; extract terminal symbols and expand nonterminals
+        processStringList : {g : Grammar} {xs : List Symbol} → StringList g xs → List String
+
+        -- empty StringList; return empty list
+        processStringList {g} {xs} (nil)             = []
+        
+        -- skip symbol; extract terminals and continue processing (can only use xs)
+        processStringList {g} {xs} (skip rhs rest)   = extractTerminals xs ++ processStringList rest
+        
+        -- expand nonterminal; extract terminals, process the nonterminal, and continue (can use xs or rhs)
+        processStringList {g} {xs} (cons rhs p rest) = extractTerminals xs ++ extractStringList p ++ processStringList rest
