@@ -145,19 +145,19 @@ extract = String.concat ∘ extractStringList
   extractStringList : {g : Grammar} {x : NonTerminal} → ProgramString g x → List String
   extractStringList (prod r ys prf) = processStringList ys
     where
-      extractTerminals : List Symbol → List String
-      extractTerminals []         = []
-      extractTerminals (T t ∷ xs) = t .name ∷ extractTerminals xs  -- extract terminal symbols
-      extractTerminals (N _ ∷ xs) = extractTerminals xs            -- ignore nonterminal
+    extractTerminals : List Symbol → List String
+    extractTerminals []         = []
+    extractTerminals (T t ∷ xs) = t .name ∷ extractTerminals xs  -- extract terminal symbols
+    extractTerminals (N _ ∷ xs) = extractTerminals xs            -- ignore nonterminal
 
-      -- process StringList; extract terminal symbols and expand nonterminals
-      processStringList : {g : Grammar} {xs : List Symbol} → StringList g xs → List String
+    -- process StringList; extract terminal symbols and expand nonterminals
+    processStringList : {g : Grammar} {xs : List Symbol} → StringList g xs → List String
 
-      -- empty StringList; return empty list
-      processStringList {g} {xs} (nil)             = []
-        
-      -- skip symbol; extract terminals and continue processing (can only use xs)
-      processStringList {g} {xs} (skip rhs rest)   = extractTerminals xs ++ processStringList rest
-        
-      -- expand nonterminal; extract terminals, process the nonterminal, and continue (can use xs or rhs)
-      processStringList {g} {xs} (cons rhs p rest) = extractTerminals xs ++ extractStringList p ++ processStringList rest
+    -- empty StringList; return empty list
+    processStringList {g} {xs} (nil)             = []
+
+    -- skip symbol; extract terminals and continue processing (can only use xs)
+    processStringList {g} {xs} (skip rhs rest)   = extractTerminals xs ++ processStringList rest
+
+    -- expand nonterminal; extract terminals, process the nonterminal, and continue (can use xs or rhs)
+    processStringList {g} {xs} (cons rhs p rest) = extractTerminals xs ++ extractStringList p ++ processStringList rest
