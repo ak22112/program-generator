@@ -71,7 +71,7 @@ data StringList g where
        → StringList g xs
        → StringList g (N x ∷ xs)
 
-  -- list where first element is a non-terminal, followed by a list xs of symbols
+  -- list where first element is a terminal, followed by a list xs of symbols
   skip : {x : Terminal}
        → (xs : List Symbol)
        → StringList g xs
