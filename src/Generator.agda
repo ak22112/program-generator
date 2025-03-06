@@ -81,6 +81,31 @@ data StringList g where
 
 
 
+-- get actual string
+extract : {g : Grammar} {x : NonTerminal} → ProgramString g x → String
+extract = String.concat ∘ extractStringList
+  where
+  extractStringList : {g : Grammar} {x : NonTerminal} → ProgramString g x → List String
+  extractStringList (prod r ys prf) = processStringList ys
+    where
+    extractTerminals : List Symbol → List String
+    extractTerminals []         = []
+    extractTerminals (T t ∷ xs) = t .name ∷ extractTerminals xs  -- extract terminal symbols
+    extractTerminals (N _ ∷ xs) = extractTerminals xs            -- ignore nonterminal
+
+    -- process StringList; extract terminal symbols and expand nonterminals
+    processStringList : {g : Grammar} {xs : List Symbol} → StringList g xs → List String
+
+    -- empty StringList; return empty list
+    processStringList {g} {xs} (nil)             = []
+
+    -- skip symbol; extract terminals and continue processing (can only use xs)
+    processStringList {g} {xs} (skip rhs rest)   = extractTerminals xs ++ processStringList rest
+
+    -- expand nonterminal; extract terminals, process the nonterminal, and continue (can use xs or rhs)
+    processStringList {g} {xs} (cons rhs p rest) = extractTerminals xs ++ extractStringList p ++ processStringList rest
+
+
 
 
 -- concrete examples
@@ -136,28 +161,3 @@ p₂ = prod r₂ (skip (N (nonTerm "Y") ∷ [])
 -- another program string (Y → d)
 p₃ : ProgramString G (r₃ .lhs)
 p₃ = prod r₃ (skip [] nil) (there (there (there (there (here refl)))))
-
-
--- get actual string
-extract : {g : Grammar} {x : NonTerminal} → ProgramString g x → String
-extract = String.concat ∘ extractStringList
-  where
-  extractStringList : {g : Grammar} {x : NonTerminal} → ProgramString g x → List String
-  extractStringList (prod r ys prf) = processStringList ys
-    where
-    extractTerminals : List Symbol → List String
-    extractTerminals []         = []
-    extractTerminals (T t ∷ xs) = t .name ∷ extractTerminals xs  -- extract terminal symbols
-    extractTerminals (N _ ∷ xs) = extractTerminals xs            -- ignore nonterminal
-
-    -- process StringList; extract terminal symbols and expand nonterminals
-    processStringList : {g : Grammar} {xs : List Symbol} → StringList g xs → List String
-
-    -- empty StringList; return empty list
-    processStringList {g} {xs} (nil)             = []
-
-    -- skip symbol; extract terminals and continue processing (can only use xs)
-    processStringList {g} {xs} (skip rhs rest)   = extractTerminals xs ++ processStringList rest
-
-    -- expand nonterminal; extract terminals, process the nonterminal, and continue (can use xs or rhs)
-    processStringList {g} {xs} (cons rhs p rest) = extractTerminals xs ++ extractStringList p ++ processStringList rest
