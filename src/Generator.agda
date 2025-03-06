@@ -13,7 +13,7 @@ open import Data.List.Relation.Unary.Any using ( here; there )
 import Data.String.Base as String
 
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl)
+open Eq using ( _≡_; refl )
 
 
 open Terminal
