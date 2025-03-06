@@ -5,6 +5,8 @@ open import Agda.Builtin.List
 open import Agda.Builtin.String
 open import Agda.Builtin.Bool
 
+open import Function.Base using ( _∘_ )
+
 open import Data.List using ( List; _∷_; []; _++_ )
 open import Data.List.Membership.Propositional using ( _∈_ )
 open import Data.List.Relation.Unary.Any using ( here; there )
@@ -138,26 +140,24 @@ p₃ = prod r₃ (skip [] nil) (there (there (there (there (here refl)))))
 
 -- get actual string
 extract : {g : Grammar} {x : NonTerminal} → ProgramString g x → String
-extract prgStr = String.concat (extractStringList prgStr)
+extract = String.concat ∘ extractStringList
   where
-  
-    extractStringList : {g : Grammar} {x : NonTerminal} → ProgramString g x → List String
-    extractStringList (prod r ys prf) = processStringList ys
-      where
-      
-        extractTerminals : List Symbol → List String
-        extractTerminals []         = []
-        extractTerminals (T t ∷ xs) = t .name ∷ extractTerminals xs  -- extract terminal symbols
-        extractTerminals (N _ ∷ xs) = extractTerminals xs            -- ignore nonterminals
+  extractStringList : {g : Grammar} {x : NonTerminal} → ProgramString g x → List String
+  extractStringList (prod r ys prf) = processStringList ys
+    where
+      extractTerminals : List Symbol → List String
+      extractTerminals []         = []
+      extractTerminals (T t ∷ xs) = t .name ∷ extractTerminals xs  -- extract terminal symbols
+      extractTerminals (N _ ∷ xs) = extractTerminals xs            -- ignore nonterminal
 
-        -- process StringList; extract terminal symbols and expand nonterminals
-        processStringList : {g : Grammar} {xs : List Symbol} → StringList g xs → List String
+      -- process StringList; extract terminal symbols and expand nonterminals
+      processStringList : {g : Grammar} {xs : List Symbol} → StringList g xs → List String
 
-        -- empty StringList; return empty list
-        processStringList {g} {xs} (nil)             = []
+      -- empty StringList; return empty list
+      processStringList {g} {xs} (nil)             = []
         
-        -- skip symbol; extract terminals and continue processing (can only use xs)
-        processStringList {g} {xs} (skip rhs rest)   = extractTerminals xs ++ processStringList rest
+      -- skip symbol; extract terminals and continue processing (can only use xs)
+      processStringList {g} {xs} (skip rhs rest)   = extractTerminals xs ++ processStringList rest
         
-        -- expand nonterminal; extract terminals, process the nonterminal, and continue (can use xs or rhs)
-        processStringList {g} {xs} (cons rhs p rest) = extractTerminals xs ++ extractStringList p ++ processStringList rest
+      -- expand nonterminal; extract terminals, process the nonterminal, and continue (can use xs or rhs)
+      processStringList {g} {xs} (cons rhs p rest) = extractTerminals xs ++ extractStringList p ++ processStringList rest
