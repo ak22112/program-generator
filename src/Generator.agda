@@ -36,7 +36,6 @@ InGrammar′ g x xs = InGrammar g (rule x xs)
 
 -- forward declaration (this is to allow mutual recursive functions)
 data ProgramString  (g : Grammar) : NonTerminal → Set
-data ProgramString′ (g : Grammar) : NonTerminal → Set
 data StringList     (g : Grammar) : List Symbol → Set
 
 
@@ -47,17 +46,6 @@ data ProgramString g where
        → (ys : StringList g (r .rhs))
        → (prf : InGrammar g r)
        → ProgramString g (r .lhs)
-
-
-
-data ProgramString′ g where
-
-  prod′ : (x : NonTerminal)
-        → (xs : List Symbol)
-        → (ys : StringList g xs)
-        → (prf : InGrammar′ g x xs)
-        → ProgramString′ g x
-
 
 
 
