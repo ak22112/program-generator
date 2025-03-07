@@ -96,7 +96,17 @@ extract = String.concat ∘ extractStringList
 
 
 -- filter Grammar by non-terminal
--- see list filtering functions here https://agda.github.io/agda-stdlib/v2.1/Data.List.Base.html
+-- see list filtering functions here https://agda.github.io/agda-stdlib/v2.1/Data.List.Base.html:
+
+-- filter : ∀ {P : Pred A p} → Decidable P → List A → List A
+-- filter P? [] = []
+-- filter P? (x ∷ xs) with does (P? x)
+-- ... | false = filter P? xs
+-- ... | true  = x ∷ filter P? xs
+
+-- filterᵇ : (A → Bool) → List A → List A
+-- filterᵇ p = filter (T? ∘ p)
+
 filterGrammar : (g : Grammar) (x : NonTerminal) → Grammar
 filterGrammar g x = {!!}
 
