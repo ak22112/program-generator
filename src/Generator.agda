@@ -87,12 +87,18 @@ extract = String.concat ∘ extractStringList
     -- empty StringList; return empty list
     processStringList {g} {xs} (nil)             = []
 
-    -- skip symbol; extract terminals and continue processing (can only use xs)
-    processStringList {g} {xs} (skip rhs rest)   = extractTerminals xs ++ processStringList rest
+    -- skip symbol; extract terminals and continue processing
+    processStringList {g} {xs} (skip _ rest)   = extractTerminals xs ++ processStringList rest
 
-    -- expand nonterminal; extract terminals, process the nonterminal, and continue (can use xs or rhs)
-    processStringList {g} {xs} (cons rhs p rest) = extractTerminals xs ++ extractStringList p ++ processStringList rest
+    -- expand nonterminal; extract terminals, process the nonterminal, and continue
+    processStringList {g} {xs} (cons _ p rest) = extractTerminals xs ++ extractStringList p ++ processStringList rest
 
+
+
+-- filter Grammar by non-terminal
+-- see list filtering functions here https://agda.github.io/agda-stdlib/v2.1/Data.List.Base.html
+filterGrammar : (g : Grammar) (x : NonTerminal) → Grammar
+filterGrammar g x = {!!}
 
 
 
