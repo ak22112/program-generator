@@ -15,7 +15,7 @@ open import Data.List.Relation.Unary.Any using ( here; there )
 import Data.String.Base as String
 
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using ( _≡_; refl )
+open Eq using ( _≡_; refl; cong )
 
 
 open Terminal
@@ -94,21 +94,85 @@ extract = String.concat ∘ extractStringList
 
 
 
+open import Relation.Nullary
+open import Data.String.Properties
+
+decEqNonTerminal : (x y : NonTerminal) → Dec (x ≡ y)
+decEqNonTerminal (nonTerm name₁) (nonTerm name₂) with name₁ ≟ name₂
+... | yes refl = yes refl
+... | no ¬p    = no (λ q → ¬p (cong NonTerminal.name q))
+
+
+decEqTerminal : (x y : Terminal) → Dec (x ≡ y)
+decEqTerminal (term name₁) (term name₂) with name₁ ≟ name₂
+... | yes refl = yes refl
+... | no ¬p    = no λ q → ¬p (cong Terminal.name q)
+
+
+
+decEqSymbol : (x y : Symbol) → Dec (x ≡ y)
+decEqSymbol (T t₁) (T t₂) with decEqTerminal t₁ t₂
+... | yes refl = yes refl
+... | no ¬p    = no (λ q → ¬p (inj-terminal q))
+  where
+  inj-terminal : ∀ {x y : Terminal}
+       → T x ≡ T y
+       -----------
+       → x ≡ y
+  inj-terminal refl = refl
+
+decEqSymbol (N n₁) (N n₂) with decEqNonTerminal n₁ n₂
+... | yes refl = yes refl
+... | no ¬p    = no (λ q → ¬p (inj-nonterminal q))
+  where
+  inj-nonterminal : ∀ {x y : NonTerminal}
+       → N x ≡ N y
+       -----------
+       → x ≡ y
+  inj-nonterminal refl = refl
+
+decEqSymbol (T _) (N _) = no (λ ())
+decEqSymbol (N _) (T _) = no (λ ())
+
+
+decEqListSymbol : (xs ys : List Symbol) → Dec (xs ≡ ys)
+decEqListSymbol [] [] = yes refl
+decEqListSymbol [] (y ∷ ys) = no (λ ())
+decEqListSymbol (x ∷ xs) [] = no (λ ())
+decEqListSymbol (x ∷ xs) (y ∷ ys) with decEqSymbol x y | decEqListSymbol xs ys
+... | yes refl | yes refl = yes refl
+... | no ¬p    | _        = no (λ q → ¬p (inj-symbol q))
+  where
+  inj-symbol : ∀ {x y : Symbol} {xs ys : List Symbol}
+       → x ∷ xs ≡ y ∷ ys
+       -----------------
+       → x ≡ y
+  inj-symbol refl = refl
+
+... | _        | no ¬q    = no (λ q → ¬q (inj-list-symbol q))
+  where
+  inj-list-symbol : ∀ {x y : Symbol} {xs ys : List Symbol}
+       → x ∷ xs ≡ y ∷ ys
+       -----------------
+       → xs ≡ ys
+  inj-list-symbol refl = refl
+
+
+decEqRule : (r₁ r₂ : Rule) → Dec (r₁ ≡ r₂)
+decEqRule (rule lhs₁ rhs₁) (rule lhs₂ rhs₂)
+  with decEqNonTerminal lhs₁ lhs₂ | decEqListSymbol rhs₁ rhs₂
+... | yes refl | yes refl = yes refl
+... | no ¬p    | _        = no (λ q → ¬p (cong Rule.lhs q))
+... | _        | no ¬q    = no (λ q → ¬q (cong Rule.rhs q))
+
+
+
+open import Data.List.Base using ( filter )
+
 -- filter Grammar by non-terminal
--- see list filtering functions here https://agda.github.io/agda-stdlib/v2.1/Data.List.Base.html:
-
--- filter : ∀ {P : Pred A p} → Decidable P → List A → List A
--- filter P? [] = []
--- filter P? (x ∷ xs) with does (P? x)
--- ... | false = filter P? xs
--- ... | true  = x ∷ filter P? xs
-
--- filterᵇ : (A → Bool) → List A → List A
--- filterᵇ p = filter (T? ∘ p)
-
+-- see list filtering functions here https://agda.github.io/agda-stdlib/v2.1/Data.List.Base.html
 filterGrammar : (g : Grammar) (x : NonTerminal) → Grammar
-filterGrammar g x = {!!}
-
+filterGrammar g x = grammar (filter (λ r → decEqNonTerminal (r .lhs) x) (g .rules))
 
 
 -- concrete examples
