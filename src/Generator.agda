@@ -1,9 +1,6 @@
 module Generator where
 
-open import Types
-open import Agda.Builtin.List
 open import Agda.Builtin.String
-open import Agda.Builtin.Bool
 
 open import Function.Base using ( _∘_ )
 
@@ -18,10 +15,17 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using ( _≡_; refl; cong )
 
 
-open Terminal
-open NonTerminal
-open Rule
-open Grammar
+open import Terminal
+open import NonTerminal
+open import Symbol
+open import Rule
+open import Grammar
+
+-- open records to make dot notation accessible
+open Terminal.Terminal
+open NonTerminal.NonTerminal
+open Rule.Rule
+open Grammar.Grammar
 
 
 -- check rule directly
