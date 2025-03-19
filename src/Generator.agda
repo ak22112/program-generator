@@ -48,7 +48,6 @@ data ProgramString g where
        → ProgramString g (r .lhs)
 
 
-
 data StringList g where
 
   -- empty list
@@ -74,7 +73,7 @@ extract : {g : Grammar} {x : NonTerminal} → ProgramString g x → String
 extract = String.concat ∘ extractStringList
   where
   extractStringList : {g : Grammar} {x : NonTerminal} → ProgramString g x → List String
-  extractStringList (prod r ys prf) = processStringList ys
+  extractStringList (prod _ ys _) = processStringList ys
     where
     extractTerminals : List Symbol → List String
     extractTerminals []         = []
@@ -85,7 +84,7 @@ extract = String.concat ∘ extractStringList
     processStringList : {g : Grammar} {xs : List Symbol} → StringList g xs → List String
 
     -- empty StringList; return empty list
-    processStringList {g} {xs} (nil)             = []
+    processStringList {g} {xs} (nil)           = []
 
     -- skip symbol; extract terminals and continue processing
     processStringList {g} {xs} (skip _ rest)   = extractTerminals xs ++ processStringList rest
