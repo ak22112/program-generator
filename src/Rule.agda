@@ -21,8 +21,8 @@ record Rule : Set where
 -----------------------------------------------------
 -- Decidable Equality
 
-decEqRule : (r₁ r₂ : Rule) → Dec (r₁ ≡ r₂)
-decEqRule (rule lhs₁ rhs₁) (rule lhs₂ rhs₂)
+≟-rule : (r₁ r₂ : Rule) → Dec (r₁ ≡ r₂)
+≟-rule (rule lhs₁ rhs₁) (rule lhs₂ rhs₂)
   with ≟-non-terminal lhs₁ lhs₂ | ≟-list-symbol rhs₁ rhs₂
 ... | yes refl | yes refl = yes refl
 ... | no ¬p    | _        = no (λ q → ¬p (cong Rule.lhs q))
