@@ -1,15 +1,10 @@
 module Generator where
 
 open import Function.Base using ( _∘_ )
-
 open import Data.List using ( List; _∷_; []; _++_ )
 open import Data.List.Membership.Propositional using ( _∈_ )
 open import Data.List.Relation.Unary.Any using ( here; there )
-
--- beware potential conflicts in future???
-import Data.String.Base as String
-open String using ( String; concat )
-
+open import Data.String using ( String; concat )
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using ( _≡_; refl; cong )
 
@@ -40,7 +35,6 @@ InGrammar′ g x xs = InGrammar g (rule x xs)
 -- forward declaration (this is to allow mutual recursive functions)
 data ProgramString  (g : Grammar) : NonTerminal → Set
 data StringList     (g : Grammar) : List Symbol → Set
-
 
 
 data ProgramString g where
@@ -97,12 +91,6 @@ extract = concat ∘ extractStringList
 
 
 
-open import Data.List.Base using ( filter )
-
--- filter Grammar by non-terminal
--- see list filtering functions here https://agda.github.io/agda-stdlib/v2.1/Data.List.Base.html
-filterGrammar : (g : Grammar) (x : NonTerminal) → Grammar
-filterGrammar g x = grammar (filter (λ r → ≟-non-terminal (r .lhs) x) (g .rules))
 
 
 -- concrete examples
