@@ -1,8 +1,8 @@
 module Grammar where
 
-open import Data.Nat.Base using ( ℕ )
+open import Data.Nat.Base using ( ℕ; _<_; zero; suc; z≤n; s≤s )
 open import Data.List using ( List; filter; _∷_; []; lookup; length )
-open import Data.Fin using ( Fin; toℕ; fromℕ; zero; suc )
+open import Data.Fin using ( Fin; toℕ; fromℕ; fromℕ<; zero; suc )
 open import NonTerminal using ( NonTerminal; ≟-non-terminal )
 open import Rule
 open import Random
@@ -36,7 +36,7 @@ filterGrammar g x = grammar (filter (λ r → ≟-non-terminal (r .lhs) x) (g .r
 -- temporary testing examples
 xs : List ℕ
 --   0   1   2
-xs = 4 ∷ 9 ∷ 2 ∷ []
+xs = 4 ∷ 9 ∷ 2 ∷ 5 ∷ []
 
 i : Fin (length xs)
 i = suc zero
@@ -49,3 +49,20 @@ xs[i] = lookup xs i
 lookup-rule : (g : Grammar) → Fin (length (g .rules)) → Rule
 lookup-rule g i = lookup (g .rules) i
 
+
+
+get-index : (n : ℕ) (ys : List ℕ)
+          → n < length ys
+          ---------------
+          → Fin (length ys)
+
+get-index n ys n<length = fromℕ< n<length
+
+index0 : Fin (length xs)
+index0 = get-index 0 xs (s≤s z≤n)
+
+index1 : Fin (length xs)
+index1 = get-index 1 xs (s≤s (s≤s z≤n))
+
+index2 : Fin (length xs)
+index2 = get-index 2 xs (s≤s (s≤s (s≤s z≤n)))
