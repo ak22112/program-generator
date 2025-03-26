@@ -51,7 +51,7 @@ lookup-rule g i = lookup (g .rules) i
 
 
 
-get-index : (n : ℕ) (ys : List ℕ)
+get-index : {A : Set} (n : ℕ) (ys : List A)
           → n < length ys
           ---------------
           → Fin (length ys)
