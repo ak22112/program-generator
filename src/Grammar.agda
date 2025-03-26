@@ -33,7 +33,7 @@ filterGrammar : (g : Grammar) (x : NonTerminal) → Grammar
 filterGrammar g x = grammar (filter (λ r → ≟-non-terminal (r .lhs) x) (g .rules))
 
 
--- temporay testing examples
+-- temporary testing examples
 xs : List ℕ
 --   0   1   2
 xs = 4 ∷ 9 ∷ 2 ∷ []
@@ -48,3 +48,4 @@ xs[i] = lookup xs i
 -- pick the ith rule in a grammar
 lookup-rule : (g : Grammar) → Fin (length (g .rules)) → Rule
 lookup-rule g i = lookup (g .rules) i
+
