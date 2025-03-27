@@ -66,3 +66,14 @@ index1 = get-index 1 xs (s≤s (s≤s z≤n))
 
 index2 : Fin (length xs)
 index2 = get-index 2 xs (s≤s (s≤s (s≤s z≤n)))
+
+
+
+
+-- doesn't work
+get-index2 : {A : Set} (n : ℕ) (ys : List A) → ⦃ p : n < length ys ⦄ → Fin (length ys)
+get-index2 n ys {{p}} = fromℕ< p
+
+-- does not type check
+-- index : Fin (length xs)
+-- index = get-index2 1 xs
