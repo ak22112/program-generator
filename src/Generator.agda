@@ -118,3 +118,11 @@ r₃ = lookup-rule G (suc (suc (suc (suc zero))))
 
 p₃ : ProgramString G (r₃ .lhs)
 p₃ = prod (suc (suc (suc (suc zero)))) (skip [] nil)
+
+
+-- X → a X → a b Y → a b c Y → a b c d
+p₄ : ProgramString G (nonTerm "X")
+p₄ = prod zero (skip (N (nonTerm "X") ∷ [])
+       (cons [] (prod (suc zero) (skip (N (nonTerm "Y") ∷ [])
+         (cons [] (prod ((suc (suc (suc zero)))) (skip (N (nonTerm "Y") ∷ [])
+           (cons [] (prod ((suc (suc (suc (suc zero))))) (skip [] nil)) nil))) nil))) nil))
