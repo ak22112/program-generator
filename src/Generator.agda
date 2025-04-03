@@ -1,7 +1,7 @@
 module Generator where
 
 open import Function.Base using ( _∘_ )
-open import Data.List using ( List; _∷_; []; _++_ )
+open import Data.List using ( List; _∷_; []; _++_; length )
 open import Data.List.Membership.Propositional using ( _∈_ )
 open import Data.List.Relation.Unary.Any using ( here; there )
 open import Data.String using ( String; concat )
@@ -39,13 +39,21 @@ data ProgramString  (g : Grammar) : NonTerminal → Set
 data StringList     (g : Grammar) : List Symbol → Set
 
 
+-- data ProgramString g where
+
+--   prod : (r : Rule)
+--        → (ys : StringList g (r .rhs))
+--        → (prf : InGrammar g r)
+--        → ProgramString g (r .lhs)
+
+
 data ProgramString g where
 
-  prod : (r : Rule)
-       → (ys : StringList g (r .rhs))
-       → (prf : InGrammar g r)
+  prod : (i : Fin (length (g .rules)))
+       → let r = lookup-rule g i in
+         (ys : StringList g (r .rhs))
        → ProgramString g (r .lhs)
-
+   
 
 data StringList g where
 
@@ -72,7 +80,7 @@ extract : {g : Grammar} {x : NonTerminal} → ProgramString g x → String
 extract = concat ∘ extractStringList
   where
   extractStringList : {g : Grammar} {x : NonTerminal} → ProgramString g x → List String
-  extractStringList (prod _ ys _) = processStringList ys
+  extractStringList (prod _ ys) = processStringList ys
     where
     extractTerminals : List Symbol → List String
     extractTerminals []         = []
@@ -83,19 +91,16 @@ extract = concat ∘ extractStringList
     processStringList : {g : Grammar} {xs : List Symbol} → StringList g xs → List String
 
     -- empty StringList; return empty list
-    processStringList {g} {xs} (nil)           = []
+    processStringList {_} {xs} (nil)           = []
 
     -- skip symbol; extract terminals and continue processing
-    processStringList {g} {xs} (skip _ rest)   = extractTerminals xs ++ processStringList rest
+    processStringList {_} {xs} (skip _ rest)   = extractTerminals xs ++ processStringList rest
 
     -- expand nonterminal; extract terminals, process the nonterminal, and continue
-    processStringList {g} {xs} (cons _ p rest) = extractTerminals xs ++ extractStringList p ++ processStringList rest
+    processStringList {_} {xs} (cons _ p rest) = extractTerminals xs ++ extractStringList p ++ processStringList rest
 
 
-
-
-
--- concrete examples
+-- concrete examples --
 
 -- grammar
 G : Grammar
@@ -110,41 +115,24 @@ G = grammar
     )
 
 
+-- rules and programs
 
--- rules and proofs they are in the grammar
 r₁ : Rule
 r₁ = rule (nonTerm "X") (T (term "a") ∷ N (nonTerm "X") ∷ [])
 
-prf₁ : InGrammar G r₁
-prf₁ = here refl
+p₁ : ProgramString G (r₁ .lhs)
+p₁ = prod zero (skip (N (nonTerm "X") ∷ []) (cons [] (prod (suc (suc zero)) nil) nil))
 
 
 r₂ : Rule
-r₂ = rule (nonTerm "Y") (T (term "c") ∷ N (nonTerm "Y") ∷ [])
+r₂ = lookup-rule G (suc (suc (suc zero)))
 
-prf₂ : InGrammar G r₂
-prf₂ = there (there (there (here refl)))
+p₂ : ProgramString G (r₂ .lhs)
+p₂ = prod (suc (suc (suc zero))) (skip (N (nonTerm "Y") ∷ []) (cons [] (prod (suc (suc (suc (suc zero)))) (skip [] nil)) nil))
 
 
 r₃ : Rule
-r₃ = rule (nonTerm "Y") (T (term "d") ∷ []) 
+r₃ = lookup-rule G (suc (suc (suc (suc zero))))
 
--- produce a program string (X → a X → a ϵ → a)
-p₁ : ProgramString G (r₁ .lhs)
-p₁ = prod r₁ (skip (N (nonTerm "X") ∷ [])
-               (cons []
-                (prod (rule (nonTerm "X") []) nil (there (there (here refl))))
-                nil)) (here refl)
-
--- another program string (Y → c Y → c d)
-p₂ : ProgramString G (r₂ .lhs)
-p₂ = prod r₂ (skip (N (nonTerm "Y") ∷ [])
-               (cons []
-                (prod (rule (nonTerm "Y") (T (term "d") ∷ [])) (skip [] nil)
-                 (there (there (there (there (here refl))))))
-                nil)) (there (there (there (here refl))))
-
-
--- another program string (Y → d)
 p₃ : ProgramString G (r₃ .lhs)
-p₃ = prod r₃ (skip [] nil) (there (there (there (there (here refl)))))
+p₃ = prod (suc (suc (suc (suc zero)))) (skip [] nil)
