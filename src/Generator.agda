@@ -8,7 +8,7 @@ open import Data.String using ( String; concat )
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using ( _≡_; refl; cong )
 
-open import Data.Fin
+open import Data.Fin using ( Fin; zero; suc )
 
 
 open import Terminal
