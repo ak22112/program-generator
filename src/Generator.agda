@@ -24,27 +24,9 @@ open Rule.Rule
 open Grammar.Grammar
 
 
--- check rule directly
-InGrammar : Grammar → Rule → Set
-InGrammar g r = r ∈ g .rules
-
--- pass in lhs and rhs separately
-InGrammar′ : Grammar → NonTerminal → List Symbol → Set
-InGrammar′ g x xs = InGrammar g (rule x xs)
-
-
-
 -- forward declaration (this is to allow mutual recursive functions)
 data ProgramString  (g : Grammar) : NonTerminal → Set
 data StringList     (g : Grammar) : List Symbol → Set
-
-
--- data ProgramString g where
-
---   prod : (r : Rule)
---        → (ys : StringList g (r .rhs))
---        → (prf : InGrammar g r)
---        → ProgramString g (r .lhs)
 
 
 data ProgramString g where
