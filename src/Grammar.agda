@@ -32,6 +32,11 @@ open Grammar
 filterGrammar : (g : Grammar) (x : NonTerminal) → Grammar
 filterGrammar g x = grammar (filter (λ r → ≟-non-terminal (r .lhs) x) (g .rules))
 
+-- work out which rules satisfy (r .lhs ≡ x), and return a list of indices
+-- then pick a random one of these numbers
+filterGrammarFin : (g : Grammar) (x : NonTerminal) → List (Fin (length (g .rules)))
+filterGrammarFin g x = [] -- TODO
+
 
 -- temporary testing examples
 xs : List ℕ
