@@ -1,7 +1,7 @@
 module Grammar where
 
 open import Data.Nat.Base using ( ℕ; _<_; zero; suc; z≤n; s≤s )
-open import Data.List using ( List; filter; _∷_; []; lookup; length )
+open import Data.List using ( List; filter; _∷_; []; lookup; length; allFin )
 open import Data.Fin using ( Fin; toℕ; fromℕ; fromℕ<; zero; suc )
 open import NonTerminal using ( NonTerminal; ≟-non-terminal )
 open import Rule
@@ -25,18 +25,6 @@ open Random.Rand
 open Grammar
 
 -------------------------------------------------------------
--- Filter a grammar by non-terminal
-
--- filter Grammar by non-terminal
--- see list filtering functions here https://agda.github.io/agda-stdlib/v2.1/Data.List.Base.html
-filterGrammar : (g : Grammar) (x : NonTerminal) → Grammar
-filterGrammar g x = grammar (filter (λ r → ≟-non-terminal (r .lhs) x) (g .rules))
-
--- work out which rules satisfy (r .lhs ≡ x), and return a list of indices
--- then pick a random one of these numbers
-filterGrammarFin : (g : Grammar) (x : NonTerminal) → List (Fin (length (g .rules)))
-filterGrammarFin g x = [] -- TODO
-
 
 -- temporary testing examples
 xs : List ℕ
@@ -53,6 +41,20 @@ xs[i] = lookup xs i
 -- pick the ith rule in a grammar
 lookup-rule : (g : Grammar) → Fin (length (g .rules)) → Rule
 lookup-rule g i = lookup (g .rules) i
+
+
+-- Filter a grammar by non-terminal
+
+-- filter Grammar by non-terminal
+-- see list filtering functions here https://agda.github.io/agda-stdlib/v2.1/Data.List.Base.html
+filter-grammar : (g : Grammar) (x : NonTerminal) → Grammar
+filter-grammar g x = grammar (filter (λ r → ≟-non-terminal (r .lhs) x) (g .rules))
+
+
+-- work out which rules satisfy (r .lhs ≡ x), and return a list of indices
+-- then pick a random one of these numbers
+filter-grammar-index : (g : Grammar) (x : NonTerminal) → List (Fin (length (g .rules)))
+filter-grammar-index g x = filter (λ i → ≟-non-terminal ((lookup-rule g i) .lhs) x) (allFin (length (g .rules)))
 
 
 
