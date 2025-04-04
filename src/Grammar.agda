@@ -51,6 +51,11 @@ get-index : {A : Set} (n : ℕ) (xs : List A)
 
 get-index n xs n<length = fromℕ< n<length
 
+-- (PoC) use postulate to get around proof (should not be used)
+get-indexᵖ : {A : Set} (n : ℕ) (xs : List A) → Fin (length xs)
+get-indexᵖ n xs = fromℕ< n<length
+  where postulate n<length : n < length xs
+
 -------------------------------------------------------------
 -- Examples
 
@@ -72,3 +77,6 @@ index1 = get-index 1 xs (s≤s (s≤s z≤n))
 
 index2 : Fin (length xs)
 index2 = get-index 2 xs (s≤s (s≤s (s≤s z≤n)))
+
+index3 : Fin (length xs)
+index3 = get-indexᵖ 3 xs
