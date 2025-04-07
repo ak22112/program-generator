@@ -3,8 +3,8 @@ module Grammar where
 open import Data.Nat.Base using ( ℕ; _<_; zero; suc; z≤n; s≤s )
 open import Data.List using ( List; filter; _∷_; []; lookup; length; allFin )
 open import Data.Fin using ( Fin; toℕ; fromℕ; fromℕ<; zero; suc )
-open import NonTerminal using ( NonTerminal ) renaming ( ≟-non-terminal to _≟_ )
-open import Rule
+open import NonTerminal using ( NonTerminal; _≟_ )
+open import Rule using ( Rule )
 open import Random
 
 -------------------------------------------------------------
@@ -19,8 +19,9 @@ record Grammar : Set where
 -------------------------------------------------------------
 -- open records to make dot notation accessible
 
-open Rule.Rule
-open Random.Rand
+open Rule.Rule    -- .lhs; .rhs
+open Random.Rand  -- .size; .seed; .min; .max
+
 open Grammar
 
 -------------------------------------------------------------

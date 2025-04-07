@@ -18,10 +18,10 @@ open import Rule
 open import Grammar
 
 -- open records to make dot notation accessible
-open Terminal.Terminal
-open NonTerminal.NonTerminal
-open Rule.Rule
-open Grammar.Grammar
+open Terminal.Terminal        -- .name
+open NonTerminal.NonTerminal  -- .name
+open Rule.Rule                -- .lhs; .rhs
+open Grammar.Grammar          -- .rules
 
 
 -- forward declaration (this is to allow mutual recursive functions)
