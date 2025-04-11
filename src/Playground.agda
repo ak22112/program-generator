@@ -158,7 +158,6 @@ nonZero-< a b nz with <-cmp a b
 ... | tri> ¬x ¬y  z = {!!}
 
 
-
 record Range : Set where
   constructor range
 
@@ -214,7 +213,35 @@ lem₇ : ∀ (x min max : ℕ) .{{_ : NonZero (max ∸ min)}} → x % (max ∸ m
 lem₇ x min max = lem₆ x min max (lem₄ x min max)
 
 
--- TODO: fiddle with types
+a+c<b∸c+c⇒a+c<b : ∀ {a b c : ℕ}
+     → c ≤ b
+     → a + c < (b ∸ c) + c
+     ---------------------
+     → a + c < b
+
+a+c<b∸c+c⇒a+c<b c≤b prf rewrite m∸n+n≡m c≤b = prf
+
+
+a<b∸c⇒a+c<b : ∀ {a b c : ℕ}
+     → c ≤ b
+     → a < (b ∸ c)
+     --------------
+     → a + c < b
+
+a<b∸c⇒a+c<b {_} {_} {c} c≤b a<b∸c = a+c<b∸c+c⇒a+c<b c≤b (+-monoˡ-< c a<b∸c)
+
+lem₈ : ∀ (x min max : ℕ) .{{_ : NonZero (max ∸ min)}}
+     → min ≤ max
+     → x % (max ∸ min) < (max ∸ min)
+     --------------------------------
+     → (x % (max ∸ min)) + min < max
+
+lem₈ x min max min≤max prf = a<b∸c⇒a+c<b {x % (max ∸ min)} {max} {min} min≤max prf
+
+
+final : ∀ {min max : ℕ} → NonZero (max ∸ min) → min ≤ max
+final {zero}    {max}     nz = z≤n
+final {suc min} {suc max} nz = s≤s (final nz)
 
 
 record ℝ (min max : ℕ) : Set where
@@ -226,10 +253,11 @@ record ℝ (min max : ℕ) : Set where
     val<max : val < max
 
 
-to-ℝange : (min max n : ℕ) → {{_ : NonZero (max ∸ min)}} → ℝ min max
-to-ℝange min max x = 𝕣 val min≤val val<max
+to-ℝange : (min max n : ℕ) → {{nz : NonZero (max ∸ min)}} → ℝ min max
+to-ℝange min max x {{nz}} = 𝕣 val min≤val val<max
   where
     val     = (x % (max ∸ min)) + min
-    min≤val = lem₂ (x % (max ∸ min)) min   -- min ≤ val
-    val<max = {!!} -- val < max
+    min≤val = lem₂ (x % (max ∸ min)) min
+    val<max = lem₈ x min max (final nz) (lem₄ x min max)
+
 
