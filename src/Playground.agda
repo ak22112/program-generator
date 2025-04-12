@@ -127,12 +127,12 @@ open import Data.Empty
 -- kk a≡b = Eq.sym (k a≡b)
 
 
-<-nonZero : ∀ (a b : ℕ)
-          → a < b
+<-nonZero : ∀ {m n : ℕ}
+          → m < n
           -----------------
-          → NonZero (b ∸ a)
+          → NonZero (n ∸ m)
 
-<-nonZero a b a<b = ≢-nonZero (λ b∸a≡0 → <⇒≢ (m<n⇒0<n∸m {a} {b} a<b) (Eq.sym b∸a≡0))
+<-nonZero m<n = ≢-nonZero (λ n∸m≡0 → <⇒≢ (m<n⇒0<n∸m m<n) (Eq.sym n∸m≡0))
 
 -- open import Relation.Binary.Definitions
 
@@ -177,36 +177,44 @@ open import Data.Empty
 -- ... | g = {!!}
 
 
-lem₂ : ∀ (x min : ℕ) → min ≤ x + min
-lem₂ x min = m≤n+m min x
+
+--------------------------------------------------------------------------
+
+-- In the following proofs, Δ refers to the difference between max and min
+
+min≤mod+min : ∀ {x min max : ℕ} .{{_ : NonZero max}}
+     → min ≤ (x % max) + min
+
+min≤mod+min {x} {min} {max} = m≤n+m min (x % max)
 
 
-lem₃ : ∀ (x min max : ℕ) .{{_ : NonZero max}} → min ≤ (x % max) + min
-lem₃ x min max = lem₂ (x % max) min
+-- special case of m%n<n where n = x ∸ y, i.e. n is a difference between two other numbers
+x%Δ<Δ : ∀ {x min max : ℕ} .{{_ : NonZero (max ∸ min)}}
+     → x % (max ∸ min) < (max ∸ min)
+
+x%Δ<Δ {_} {min} {max} = m%n<n _ (max ∸ min)
 
 
-lem₄ : ∀ (x min max : ℕ) .{{_ : NonZero (max ∸ min)}} → x % (max ∸ min) < (max ∸ min)
-lem₄ x min max = m%n<n x (max ∸ min)
-
-
-lem₅ : ∀ (x y z : ℕ)
-     → x < y ∸ z
-     ------------
-     → x < y
+x<y∸z⇒x<y : ∀ {x y z : ℕ}
+          → x < y ∸ z
+          ------------
+          → x < y
      
-lem₅ x y z x<y∸z = <-≤-trans x<y∸z (m∸n≤m y z)
+x<y∸z⇒x<y {_} {y} {z} x<y∸z = <-≤-trans x<y∸z (m∸n≤m y z)
 
 
-lem₆ : ∀ (x min max : ℕ) .{{_ : NonZero (max ∸ min)}}
+x%Δ<Δ⇒x%Δ<max : ∀ {x min max : ℕ} .{{_ : NonZero (max ∸ min)}}
      → x % (max ∸ min) < (max ∸ min)
      -------------------------------
      → x % (max ∸ min) < max
 
-lem₆ x min max = lem₅ (x % (max ∸ min)) max min
+x%Δ<Δ⇒x%Δ<max {_} {min} {_} = x<y∸z⇒x<y {_} {_} {min}
 
 
-lem₇ : ∀ (x min max : ℕ) .{{_ : NonZero (max ∸ min)}} → x % (max ∸ min) < max
-lem₇ x min max = lem₆ x min max (lem₄ x min max)
+x%Δ<max : ∀ {x min max : ℕ} .{{_ : NonZero (max ∸ min)}}
+     → x % (max ∸ min) < max
+
+x%Δ<max {_} {min} {_} = x%Δ<Δ⇒x%Δ<max {_} {min} {_} (x%Δ<Δ {_} {min} {_})
 
 
 a+c<b∸c+c⇒a+c<b : ∀ {a b c : ℕ}
@@ -227,22 +235,30 @@ a<b∸c⇒a+c<b : ∀ {a b c : ℕ}
 a<b∸c⇒a+c<b {_} {_} {c} c≤b a<b∸c = a+c<b∸c+c⇒a+c<b c≤b (+-monoˡ-< c a<b∸c)
 
 
-lem₈ : ∀ (x min max : ℕ) .{{_ : NonZero (max ∸ min)}}
+x%Δ<Δ⇒x%Δ+min<max : ∀ {x min max : ℕ} .{{_ : NonZero (max ∸ min)}}
      → min ≤ max
      → x % (max ∸ min) < (max ∸ min)
      --------------------------------
      → (x % (max ∸ min)) + min < max
 
-lem₈ x min max min≤max prf = a<b∸c⇒a+c<b {x % (max ∸ min)} {max} {min} min≤max prf
+x%Δ<Δ⇒x%Δ+min<max min≤max prf = a<b∸c⇒a+c<b min≤max prf
 
 
-nonzero-m∸n⇒n≤m : ∀ {min max : ℕ} → NonZero (max ∸ min) → min ≤ max
-nonzero-m∸n⇒n≤m {zero}    {max}     nz = z≤n
-nonzero-m∸n⇒n≤m {suc min} {suc max} nz = s≤s (nonzero-m∸n⇒n≤m nz)
+min≤max : ∀ {min max : ℕ} .{{_ : NonZero (max ∸ min)}}
+                → min ≤ max
+
+min≤max {zero}  {_}     = z≤n
+min≤max {suc _} {suc _} = s≤s min≤max
 
 
-record ℝ (min max : ℕ) : Set where
-  constructor 𝕣
+x%Δ+min<max : ∀ {x min max : ℕ} .{{_ : NonZero (max ∸ min)}}
+     → (x % (max ∸ min)) + min < max
+
+x%Δ+min<max {_} {min} {_} = x%Δ<Δ⇒x%Δ+min<max {_} {min} {_} min≤max (x%Δ<Δ {_} {min} {_})
+
+
+record Range (min max : ℕ) .{{_ : NonZero (max ∸ min)}} : Set where
+  constructor range
 
   field
     val     : ℕ
@@ -250,9 +266,9 @@ record ℝ (min max : ℕ) : Set where
     val<max : val < max
 
 
-to-ℝange : (min max n : ℕ) → {{nz : NonZero (max ∸ min)}} → ℝ min max
-to-ℝange min max x {{nz}} = 𝕣 val min≤val val<max
+make-range : (min max x : ℕ) → {{_ : NonZero (max ∸ min)}} → Range min max
+make-range min max x = range val min≤val val<max
   where
   val     = (x % (max ∸ min)) + min
-  min≤val = lem₃ x min (max ∸ min)
-  val<max = lem₈ x min max (nonzero-m∸n⇒n≤m nz) (lem₄ x min max)
+  min≤val = min≤mod+min
+  val<max = x%Δ+min<max {_} {min} {_}
