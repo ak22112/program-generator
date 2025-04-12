@@ -189,10 +189,10 @@ min≤mod+min {x} {min} {max} = m≤n+m min (x % max)
 
 
 -- special case of m%n<n where n = x ∸ y, i.e. n is a difference between two other numbers
-x%Δ<Δ : ∀ {x min max : ℕ} .{{_ : NonZero (max ∸ min)}}
+x%Δ<Δ : ∀ {x : ℕ} (min : ℕ) {max : ℕ} .{{_ : NonZero (max ∸ min)}}
      → x % (max ∸ min) < (max ∸ min)
 
-x%Δ<Δ {_} {min} {max} = m%n<n _ (max ∸ min)
+x%Δ<Δ min {max} = m%n<n _ (max ∸ min)
 
 
 x<y∸z⇒x<y : ∀ {x y z : ℕ}
@@ -203,18 +203,18 @@ x<y∸z⇒x<y : ∀ {x y z : ℕ}
 x<y∸z⇒x<y {_} {y} {z} x<y∸z = <-≤-trans x<y∸z (m∸n≤m y z)
 
 
-x%Δ<Δ⇒x%Δ<max : ∀ {x min max : ℕ} .{{_ : NonZero (max ∸ min)}}
+x%Δ<Δ⇒x%Δ<max : ∀ {x : ℕ} (min : ℕ) {max : ℕ} .{{_ : NonZero (max ∸ min)}}
      → x % (max ∸ min) < (max ∸ min)
      -------------------------------
      → x % (max ∸ min) < max
 
-x%Δ<Δ⇒x%Δ<max {_} {min} {_} = x<y∸z⇒x<y {_} {_} {min}
+x%Δ<Δ⇒x%Δ<max min = x<y∸z⇒x<y {_} {_} {min}
 
 
-x%Δ<max : ∀ {x min max : ℕ} .{{_ : NonZero (max ∸ min)}}
+x%Δ<max : ∀ {x : ℕ} (min : ℕ) {max : ℕ} .{{_ : NonZero (max ∸ min)}}
      → x % (max ∸ min) < max
 
-x%Δ<max {_} {min} {_} = x%Δ<Δ⇒x%Δ<max {_} {min} {_} (x%Δ<Δ {_} {min} {_})
+x%Δ<max min = x%Δ<Δ⇒x%Δ<max min (x%Δ<Δ min)
 
 
 a+c<b∸c+c⇒a+c<b : ∀ {a b c : ℕ}
@@ -235,13 +235,13 @@ a<b∸c⇒a+c<b : ∀ {a b c : ℕ}
 a<b∸c⇒a+c<b {_} {_} {c} c≤b a<b∸c = a+c<b∸c+c⇒a+c<b c≤b (+-monoˡ-< c a<b∸c)
 
 
-x%Δ<Δ⇒x%Δ+min<max : ∀ {x min max : ℕ} .{{_ : NonZero (max ∸ min)}}
+x%Δ<Δ⇒x%Δ+min<max : ∀ {x : ℕ} (min : ℕ) {max : ℕ} .{{_ : NonZero (max ∸ min)}}
      → min ≤ max
      → x % (max ∸ min) < (max ∸ min)
      --------------------------------
      → (x % (max ∸ min)) + min < max
 
-x%Δ<Δ⇒x%Δ+min<max min≤max prf = a<b∸c⇒a+c<b min≤max prf
+x%Δ<Δ⇒x%Δ+min<max min min≤max prf = a<b∸c⇒a+c<b min≤max prf
 
 
 min≤max : ∀ {min max : ℕ} .{{_ : NonZero (max ∸ min)}}
@@ -251,10 +251,10 @@ min≤max {zero}  {_}     = z≤n
 min≤max {suc _} {suc _} = s≤s min≤max
 
 
-x%Δ+min<max : ∀ {x min max : ℕ} .{{_ : NonZero (max ∸ min)}}
+x%Δ+min<max : ∀ {x : ℕ} (min : ℕ) {max : ℕ} .{{_ : NonZero (max ∸ min)}}
      → (x % (max ∸ min)) + min < max
 
-x%Δ+min<max {_} {min} {_} = x%Δ<Δ⇒x%Δ+min<max {_} {min} {_} min≤max (x%Δ<Δ {_} {min} {_})
+x%Δ+min<max min = x%Δ<Δ⇒x%Δ+min<max min min≤max (x%Δ<Δ min)
 
 
 record Range (min max : ℕ) .{{_ : NonZero (max ∸ min)}} : Set where
@@ -266,9 +266,9 @@ record Range (min max : ℕ) .{{_ : NonZero (max ∸ min)}} : Set where
     val<max : val < max
 
 
-make-range : (min max x : ℕ) → {{_ : NonZero (max ∸ min)}} → Range min max
+make-range : (min max x : ℕ) .{{_ : NonZero (max ∸ min)}} → Range min max
 make-range min max x = range val min≤val val<max
   where
   val     = (x % (max ∸ min)) + min
   min≤val = min≤mod+min
-  val<max = x%Δ+min<max {_} {min} {_}
+  val<max = x%Δ+min<max min
