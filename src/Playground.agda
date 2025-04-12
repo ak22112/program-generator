@@ -180,17 +180,30 @@ open import Data.Empty
 lem₂ : ∀ (x min : ℕ) → min ≤ x + min
 lem₂ x min = m≤n+m min x
 
+
 lem₃ : ∀ (x min max : ℕ) .{{_ : NonZero max}} → min ≤ (x % max) + min
 lem₃ x min max = lem₂ (x % max) min
+
 
 lem₄ : ∀ (x min max : ℕ) .{{_ : NonZero (max ∸ min)}} → x % (max ∸ min) < (max ∸ min)
 lem₄ x min max = m%n<n x (max ∸ min)
 
-lem₅ : ∀ (x y z : ℕ) → x < y ∸ z → x < y
+
+lem₅ : ∀ (x y z : ℕ)
+     → x < y ∸ z
+     ------------
+     → x < y
+     
 lem₅ x y z x<y∸z = <-≤-trans x<y∸z (m∸n≤m y z)
 
-lem₆ : ∀ (x min max : ℕ) .{{_ : NonZero (max ∸ min)}} → x % (max ∸ min) < (max ∸ min) → x % (max ∸ min) < max
+
+lem₆ : ∀ (x min max : ℕ) .{{_ : NonZero (max ∸ min)}}
+     → x % (max ∸ min) < (max ∸ min)
+     -------------------------------
+     → x % (max ∸ min) < max
+
 lem₆ x min max = lem₅ (x % (max ∸ min)) max min
+
 
 lem₇ : ∀ (x min max : ℕ) .{{_ : NonZero (max ∸ min)}} → x % (max ∸ min) < max
 lem₇ x min max = lem₆ x min max (lem₄ x min max)
@@ -212,6 +225,7 @@ a<b∸c⇒a+c<b : ∀ {a b c : ℕ}
      → a + c < b
 
 a<b∸c⇒a+c<b {_} {_} {c} c≤b a<b∸c = a+c<b∸c+c⇒a+c<b c≤b (+-monoˡ-< c a<b∸c)
+
 
 lem₈ : ∀ (x min max : ℕ) .{{_ : NonZero (max ∸ min)}}
      → min ≤ max
@@ -239,6 +253,6 @@ record ℝ (min max : ℕ) : Set where
 to-ℝange : (min max n : ℕ) → {{nz : NonZero (max ∸ min)}} → ℝ min max
 to-ℝange min max x {{nz}} = 𝕣 val min≤val val<max
   where
-    val     = (x % (max ∸ min)) + min
-    min≤val = lem₂ (x % (max ∸ min)) min
-    val<max = lem₈ x min max (nonzero-m∸n⇒n≤m nz) (lem₄ x min max)
+  val     = (x % (max ∸ min)) + min
+  min≤val = lem₃ x min (max ∸ min)
+  val<max = lem₈ x min max (nonzero-m∸n⇒n≤m nz) (lem₄ x min max)
