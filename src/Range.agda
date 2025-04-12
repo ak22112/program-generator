@@ -1,3 +1,5 @@
+{-# OPTIONS --cubical-compatible --without-K #-}
+
 module Range where
 
 open import Data.Nat using ( ℕ; zero; suc; NonZero; _%_; _+_; _∸_; _≤_; _<_; z≤n; s≤s )

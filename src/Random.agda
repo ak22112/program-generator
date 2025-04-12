@@ -1,4 +1,8 @@
+{-# OPTIONS --cubical-compatible --sized-types #-}
+
+
 module Random where
+
 
 -- https://agda.readthedocs.io/en/stable/language/instance-arguments.html
 
@@ -34,3 +38,32 @@ private
   -- example: Generate 10 random numbers in range [1, 500) with seed 42
   example : List ℕ
   example = randomList (rand 10 42 1 500)
+
+
+
+open import Data.Nat.PseudoRandom.LCG.Unsafe
+open import Codata.Sized.Stream as Stream using ( Stream; take )
+open import Data.Vec.Base using ( Vec; _∷_; [])
+open import Function.Base using ( _∘_ )
+
+
+open import Range using ( Range; clamp )
+
+private
+  factorial : (n : ℕ) → ℕ
+  factorial zero    = 1
+  factorial (suc n) = (suc n) * factorial n
+
+
+randoms<n : (n : ℕ) .{{_ : NonZero n}} → Stream ℕ _
+randoms<n n = Stream.map (Range.val ∘ λ x → clamp 0 n x) (stream glibc 0)
+
+private
+  safe-take : (num max : ℕ) .{{_ : NonZero max}} → Vec ℕ num
+  safe-take num max = take num (randoms<n max)
+
+
+  -- example recursive function to pull from stream 1 element at a time
+  sum : (counter : ℕ) → ℕ
+  sum zero          = zero
+  sum (suc counter) = Stream.lookup (randoms<n 10) counter + sum counter
