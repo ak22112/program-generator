@@ -64,13 +64,18 @@ get-indexᵖ : {A : Set} (n : ℕ) (xs : List A) → Fin (length xs)
 get-indexᵖ n xs = fromℕ< n<length
   where postulate n<length : n < length xs
 
-get-index-from-range : {A : Set} (xs : List A) .{{_ : NonZero (length xs ∸ 0)}} (r : Range 0 (length xs)) → Fin (length xs)
+get-index-from-range : {A : Set} (xs : List A) .{{_ : NonZero (length xs)}} (r : Range 0 (length xs)) → Fin (length xs)
 get-index-from-range xs r = fromℕ< (r .val<max)
 
-ℕtoFin : {A : Set} (n : ℕ) (xs : List A) .{{_ : NonZero (length xs ∸ 0)}} → Fin (length xs)
+ℕtoFin : {A : Set} (n : ℕ) (xs : List A) .{{_ : NonZero (length xs)}} → Fin (length xs)
 ℕtoFin n xs = get-index-from-range xs (clamp 0 (length xs) n)
 
--- TODO: random number → ℕtoFin → lookup-rule
+-- need to make sure this function is never called on an empty list
+lookup-in-bounds : {A : Set} (xs : List A) (n : ℕ) .{{_ : NonZero (length xs)}} → A
+lookup-in-bounds xs n = lookup xs (ℕtoFin n xs)
+
+safe-lookup-rule : (g : Grammar) (n : ℕ) .{{_ : NonZero (length (g .rules))}} → Rule
+safe-lookup-rule g n = lookup-in-bounds (g .rules) n
 
 -------------------------------------------------------------
 -- Examples

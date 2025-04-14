@@ -1,6 +1,9 @@
+{-# OPTIONS --sized-types #-}
+
 module Generator where
 
 open import Function.Base using ( _∘_ )
+open import Data.Nat.Base using ( NonZero; ℕ; zero; suc )
 open import Data.List using ( List; _∷_; []; _++_; length )
 open import Data.List.Membership.Propositional using ( _∈_ )
 open import Data.List.Relation.Unary.Any using ( here; there )
@@ -9,6 +12,8 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using ( _≡_; refl; cong )
 
 open import Data.Fin using ( Fin; zero; suc )
+
+open import Data.Maybe
 
 
 open import Terminal
@@ -109,6 +114,7 @@ p₁ = prod zero (skip (N (nonTerm "X") ∷ []) (cons [] (prod (suc (suc zero)) 
 r₂ : Rule
 r₂ = lookup-rule G (suc (suc (suc zero)))
 
+
 p₂ : ProgramString G (r₂ .lhs)
 p₂ = prod (suc (suc (suc zero))) (skip (N (nonTerm "Y") ∷ []) (cons [] (prod (suc (suc (suc (suc zero)))) (skip [] nil)) nil))
 
@@ -126,3 +132,15 @@ p₄ = prod zero (skip (N (nonTerm "X") ∷ [])
        (cons [] (prod (suc zero) (skip (N (nonTerm "Y") ∷ [])
          (cons [] (prod ((suc (suc (suc zero)))) (skip (N (nonTerm "Y") ∷ [])
            (cons [] (prod ((suc (suc (suc (suc zero))))) (skip [] nil)) nil))) nil))) nil))
+
+
+-- might not need this to be a Maybe
+-- when pattern matching on a stringList, should only need to call this on the `cons` case
+-- also might need to move this to the Grammar module
+lookup-valid-rule : (g : Grammar) (x : NonTerminal) → Maybe Rule
+lookup-valid-rule g x with filter-grammar-index g x
+...        | []     = nothing
+...        | i ∷ is = just (lookup-rule g (lookup-in-bounds (i ∷ is) rand))
+  where
+  rand : ℕ
+  rand = zero -- TODO: pick randomly
