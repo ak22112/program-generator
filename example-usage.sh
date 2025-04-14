@@ -22,5 +22,10 @@ if ! [[ $num_programs =~ ^[0-9]+$ ]]; then
 fi
 
 for ((i = 0; i < num_programs; i++)); do
+  # to stdout
   ./program-generator "$RANDOM"
+  echo
+
+  # to files
+  ./program-generator "$RANDOM" >"program_$i.txt"
 done
