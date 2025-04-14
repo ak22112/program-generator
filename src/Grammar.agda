@@ -1,11 +1,17 @@
+{-# OPTIONS --sized-types #-}
+
 module Grammar where
 
-open import Data.Nat.Base using ( ℕ; _<_; zero; suc; z≤n; s≤s )
+open import Data.Nat.Base using ( ℕ; _<_; zero; suc; z≤n; s≤s; NonZero; _∸_ )
 open import Data.List using ( List; filter; _∷_; []; lookup; length; allFin )
 open import Data.Fin using ( Fin; toℕ; fromℕ; fromℕ<; zero; suc )
 open import NonTerminal using ( NonTerminal; _≟_ )
 open import Rule using ( Rule )
 open import Random
+open import Range
+
+open import Codata.Sized.Stream as Stream using ( Stream; take )
+open import Data.Vec.Base using ( Vec; _∷_; [] )
 
 -------------------------------------------------------------
 -- Grammar type
@@ -21,6 +27,7 @@ record Grammar : Set where
 
 open Rule.Rule    -- .lhs; .rhs
 open Random.Rand  -- .size; .seed; .min; .max
+open Range.Range -- .val; .min≤val; .val<max
 
 open Grammar
 
@@ -56,6 +63,14 @@ get-index n xs n<length = fromℕ< n<length
 get-indexᵖ : {A : Set} (n : ℕ) (xs : List A) → Fin (length xs)
 get-indexᵖ n xs = fromℕ< n<length
   where postulate n<length : n < length xs
+
+get-index-from-range : {A : Set} (xs : List A) .{{_ : NonZero (length xs ∸ 0)}} (r : Range 0 (length xs)) → Fin (length xs)
+get-index-from-range xs r = fromℕ< (r .val<max)
+
+ℕtoFin : {A : Set} (n : ℕ) (xs : List A) .{{_ : NonZero (length xs ∸ 0)}} → Fin (length xs)
+ℕtoFin n xs = get-index-from-range xs (clamp 0 (length xs) n)
+
+-- TODO: random number → ℕtoFin → lookup-rule
 
 -------------------------------------------------------------
 -- Examples
