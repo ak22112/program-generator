@@ -8,7 +8,7 @@ module Random where
 
 open import Data.Nat.PseudoRandom.LCG
 open import Data.Nat.Base using ( ℕ; _%_; _+_; _∸_; _<_; _≤_; s≤s; z≤n; suc; zero; _*_; NonZero )
-open import Data.List.Base using ( List; []; _∷_; map )
+open import Data.List.Base as List using ( List; []; _∷_ )
 open import Data.Nat.DivMod
 
 
@@ -27,7 +27,7 @@ open Generator
 
 -- generate a list of random numbers in range [min, max)
 randomList : (r : Rand) ⦃ _ : NonZero ((r .max) ∸ (r .min)) ⦄ → List ℕ
-randomList r = map (toRange (r .min) (r .max)) (list (r .size) glibc (r .seed))
+randomList r = List.map (toRange (r .min) (r .max)) (list (r .size) glibc (r .seed))
   where
   -- map LCG output to range [min, max) ensuring (min ∸ max) ≠ 0 (cannot divide by 0)
   toRange : (min max : ℕ) ⦃ _ : NonZero (max ∸ min) ⦄ → ℕ → ℕ
@@ -42,7 +42,7 @@ private
 
 
 open import Data.Nat.PseudoRandom.LCG.Unsafe
-open import Codata.Sized.Stream as Stream using ( Stream; take )
+open import Codata.Sized.Stream as Stream using ( Stream; take; lookup; map )
 open import Data.Vec.Base using ( Vec; _∷_; [])
 open import Function.Base using ( _∘_ )
 
@@ -56,7 +56,15 @@ private
 
 
 randoms<n : (n : ℕ) .{{_ : NonZero n}} → Stream ℕ _
-randoms<n n = Stream.map (Range.val ∘ λ x → clamp 0 n x) (stream glibc 0)
+randoms<n n = map (Range.val ∘ λ x → clamp 0 n x) (stream glibc 0)
+
+-- example recursive function
+-- num is the recursion variable
+-- i is a state variable to track which element of the stream is being accessed
+ex : (num i : ℕ) → List ℕ
+ex zero      i = []
+ex (suc num) i = (lookup (randoms<n 10) i) ∷ ex num (suc i)
+
 
 private
   safe-take : (num max : ℕ) .{{_ : NonZero max}} → Vec ℕ num
@@ -66,4 +74,7 @@ private
   -- example recursive function to pull from stream 1 element at a time
   sum : (counter : ℕ) → ℕ
   sum zero          = zero
-  sum (suc counter) = Stream.lookup (randoms<n 10) counter + sum counter
+  sum (suc counter) = lookup (randoms<n 10) counter + sum counter
+
+
+
