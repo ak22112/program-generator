@@ -26,7 +26,6 @@ record Grammar : Set where
 -- open records to make dot notation accessible
 
 open Rule.Rule    -- .lhs; .rhs
-open Random.Rand  -- .size; .seed; .min; .max
 open Range.Range -- .val; .min≤val; .val<max
 
 open Grammar

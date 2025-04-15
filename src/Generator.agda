@@ -2,7 +2,7 @@
 
 module Generator where
 
-open import Function.Base using ( _∘_ )
+open import Function.Base using ( _∘_; case_of_ )
 open import Data.Nat.Base using ( NonZero; ℕ; zero; suc )
 open import Data.List using ( List; _∷_; []; _++_; length )
 open import Data.List.Membership.Propositional using ( _∈_ )
@@ -78,7 +78,7 @@ extract = concat ∘ extractStringList
     processStringList : {g : Grammar} {xs : List Symbol} → StringList g xs → List String
 
     -- empty StringList; return empty list
-    processStringList {_} {xs} (nil)           = []
+    processStringList {_} {_}  nil             = []
 
     -- skip symbol; extract terminals and continue processing
     processStringList {_} {xs} (skip _ rest)   = extractTerminals xs ++ processStringList rest
@@ -144,3 +144,8 @@ lookup-valid-rule g x with filter-grammar-index g x
   where
   rand : ℕ
   rand = zero -- TODO: pick randomly
+
+
+open import Codata.Sized.Stream as Stream using ( Stream; head; tail )
+open import Data.Product
+
