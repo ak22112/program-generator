@@ -117,17 +117,7 @@ p₁′ = prod (ℕtoFin 0 (G .rules)) (skip (getrhs 0) (cons (getrhs 2) (prod (
     tail : {A : Set} → List A → List A
     tail []       = []      
     tail (_ ∷ xs) = xs
-
-
-getRule : ℕ → Rule
-getRule n = lookup-rule G (ℕtoFin n (G .rules))
-
-getRHS : ℕ → List Symbol
-getRHS n = (getRule n) .rhs
-
-buildProd : (n : ℕ) → StringList G (getRHS n) → ProgramString G ((getRule n) .lhs)
-buildProd n ys = prod (ℕtoFin n (G .rules)) ys
-
+    
 
 r₂ : Rule
 r₂ = lookup-rule G (suc (suc (suc zero)))
@@ -208,12 +198,42 @@ open import Relation.Nullary
 
 
 
-stringList-test : (g : Grammar) (xs : List Symbol) → StringList g xs
-stringList-test g []         = nil
-stringList-test g (T x ∷ xs) = skip xs (stringList-test g xs)
-stringList-test g (N x ∷ xs) = cons xs {!!} (stringList-test g xs)
+tail′ : {A : Set} → List A → List A
+tail′ []       = []      
+tail′ (_ ∷ xs) = xs
 
-generate : (g : Grammar) (stream : Stream ℕ _) .{{_ : NonZero (length (g .rules))}} → ProgramString g ((lookup (g .rules) (ℕtoFin (head stream) (g .rules))) .lhs)
-generate g stream with filter-grammar-index g ((lookup (g .rules) (ℕtoFin (head stream) (g .rules))) .lhs)
-... | [] = {!!} -- don't know how to handle this. Maybe?
-... | i ∷ is = {!!}
+get-rest-rhs : ℕ → List Symbol
+get-rest-rhs n = tail′ ((lookup-rule G (ℕtoFin n (G .rules))) .rhs)
+
+get-rule : ℕ → Rule
+get-rule n = lookup-rule G (ℕtoFin n (G .rules))
+
+getRHS : ℕ → List Symbol
+getRHS n = (get-rule n) .rhs
+
+buildProd : (n : ℕ) → StringList G (getRHS n) → ProgramString G ((get-rule n) .lhs)
+buildProd n ys = prod (ℕtoFin n (G .rules)) ys
+
+
+mutual
+
+  -- temp to check pattern matching
+  stringList-test : (g : Grammar) (xs : List Symbol) → StringList g xs
+  stringList-test g []         = nil
+  stringList-test g (T x ∷ xs) = skip xs (stringList-test g xs)
+  stringList-test g (N x ∷ xs) = cons xs {!!} (stringList-test g xs)
+
+  helper : {g : Grammar} (xs : List Symbol) (stream : Stream ℕ _) → StringList g xs
+  helper []        stream = nil
+  helper (x ∷ xs)  stream with x
+  ... | T x₁ = skip xs (helper xs (tail stream))
+  ... | N x₁ = cons xs {!!} (helper xs (tail stream))
+
+  generate : (g : Grammar) (stream : Stream ℕ _) .{{_ : NonZero (length (g .rules))}} → ProgramString g ((lookup (g .rules) (ℕtoFin (head stream) (g .rules))) .lhs)
+  generate g stream using (idx , r , rhs) ← let idx = ℕtoFin (head stream) (g .rules) in idx
+                                          , let r   = lookup (g .rules) idx in r
+                                          , let rhs = r .rhs in rhs
+
+                    with filter-grammar-index g (r .lhs)
+  ... | []     = {!!} -- don't know how to handle this. Maybe?
+  ... | i ∷ is = {!!} -- could just match is (no ∷)
