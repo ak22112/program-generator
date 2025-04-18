@@ -4,7 +4,7 @@ module Generator where
 
 open import Function.Base using ( _∘_; case_of_ )
 open import Data.Nat.Base using ( NonZero; ℕ; zero; suc )
-open import Data.List using ( List; _∷_; []; _++_; length )
+open import Data.List using ( List; _∷_; []; _++_; length; lookup )
 open import Data.List.Membership.Propositional using ( _∈_ )
 open import Data.List.Relation.Unary.Any using ( here; there )
 open import Data.String using ( String; concat )
@@ -21,6 +21,7 @@ open import NonTerminal
 open import Symbol
 open import Rule
 open import Grammar
+open import Random
 
 -- open records to make dot notation accessible
 open Terminal.Terminal        -- .name
@@ -37,7 +38,7 @@ data StringList     (g : Grammar) : List Symbol → Set
 data ProgramString g where
 
   prod : (i : Fin (length (g .rules)))
-       → let r = lookup-rule g i in
+       → let r = lookup (g .rules) i in
          (ys : StringList g (r .rhs))
        → ProgramString g (r .lhs)
    
@@ -104,11 +105,28 @@ G = grammar
 
 -- rules and programs
 
-r₁ : Rule
-r₁ = rule (nonTerm "X") (T (term "a") ∷ N (nonTerm "X") ∷ [])
-
-p₁ : ProgramString G (r₁ .lhs)
+p₁ : ProgramString G (nonTerm "X")
 p₁ = prod zero (skip (N (nonTerm "X") ∷ []) (cons [] (prod (suc (suc zero)) nil) nil))
+
+p₁′ : ProgramString G (nonTerm "X")
+p₁′ = prod (ℕtoFin 0 (G .rules)) (skip (getrhs 0) (cons (getrhs 2) (prod (ℕtoFin 2 ((G .rules))) nil) nil))
+  where
+  getrhs : ℕ → List Symbol
+  getrhs n = tail ((lookup-rule G (ℕtoFin n (G .rules))) .rhs)
+    where
+    tail : {A : Set} → List A → List A
+    tail []       = []      
+    tail (_ ∷ xs) = xs
+
+
+getRule : ℕ → Rule
+getRule n = lookup-rule G (ℕtoFin n (G .rules))
+
+getRHS : ℕ → List Symbol
+getRHS n = (getRule n) .rhs
+
+buildProd : (n : ℕ) → StringList G (getRHS n) → ProgramString G ((getRule n) .lhs)
+buildProd n ys = prod (ℕtoFin n (G .rules)) ys
 
 
 r₂ : Rule
@@ -123,7 +141,7 @@ r₃ : Rule
 r₃ = lookup-rule G (suc (suc (suc (suc zero))))
 
 p₃ : ProgramString G (r₃ .lhs)
-p₃ = prod (suc (suc (suc (suc zero)))) (skip [] nil)
+p₃ = prod (ℕtoFin 4 (G .rules)) (skip [] nil)
 
 
 -- X → a X → a b Y → a b c Y → a b c d
@@ -132,6 +150,13 @@ p₄ = prod zero (skip (N (nonTerm "X") ∷ [])
        (cons [] (prod (suc zero) (skip (N (nonTerm "Y") ∷ [])
          (cons [] (prod ((suc (suc (suc zero)))) (skip (N (nonTerm "Y") ∷ [])
            (cons [] (prod ((suc (suc (suc (suc zero))))) (skip [] nil)) nil))) nil))) nil))
+
+-- X → a X → a b Y → a b c Y → a b c d
+p₅ : ProgramString G (nonTerm "X")
+p₅ = prod (ℕtoFin 0 (G .rules)) (skip (N (nonTerm "X") ∷ [])
+       (cons [] (prod ((ℕtoFin 1 (G .rules))) (skip (N (nonTerm "Y") ∷ [])
+         (cons [] (prod (ℕtoFin 3 (G .rules)) (skip (N (nonTerm "Y") ∷ [])
+           (cons [] (prod (ℕtoFin 4 (G .rules)) (skip [] nil)) nil))) nil))) nil))
 
 
 -- might not need this to be a Maybe
@@ -143,9 +168,52 @@ lookup-valid-rule g x with filter-grammar-index g x
 ...        | i ∷ is = just (lookup-rule g (lookup-in-bounds (i ∷ is) rand))
   where
   rand : ℕ
-  rand = zero -- TODO: pick randomly
+  rand = 0 -- TODO: pick randomly
 
 
 open import Codata.Sized.Stream as Stream using ( Stream; head; tail )
 open import Data.Product
 
+open import Relation.Nullary
+
+-- generate : (g : Grammar) (x : NonTerminal) (seed : ℕ) → Maybe (ProgramString g x)
+-- generate g x seed = generate-helper g x (randoms seed)
+--   where
+--   generate-helper : (g : Grammar) (x : NonTerminal) (stream : Stream ℕ _) → Maybe (ProgramString g x)
+--   generate-helper g x stream with filter-grammar-index g x
+--   ... | []     = nothing
+--   ... | i ∷ is = let
+--       rand  = head stream
+--       index = ℕtoFin rand (i ∷ is)
+--       rule  = lookup-rule g {!!}
+--     in
+--       {!!}
+
+
+-- mutual
+
+--   maybeStringList : (g : Grammar) → ℕ → (ys : List Symbol) → Maybe (StringList g ys)
+--   maybeStringList g fuel []               = just nil
+--   maybeStringList g fuel (T t ∷ ys)       = do rest ← maybeStringList g fuel ys ; just (skip ys rest)
+--   maybeStringList g (suc fuel) (N n ∷ ys) = do p ← generate g n ; rest ← maybeStringList g fuel ys ; just (cons ys p rest)
+--   maybeStringList g zero _                = nothing
+
+
+--   generate : (g : Grammar) (x : NonTerminal) → Maybe (ProgramString g x)
+--   generate g x with filter-grammar-index g x
+--   ... | []    = nothing
+--   ... | i ∷ _ with lookup-rule g i
+--   ...            | rule lhs rhs = maybeStringList g rhs >>= λ ys → just {!!}
+
+
+
+
+stringList-test : (g : Grammar) (xs : List Symbol) → StringList g xs
+stringList-test g []         = nil
+stringList-test g (T x ∷ xs) = skip xs (stringList-test g xs)
+stringList-test g (N x ∷ xs) = cons xs {!!} (stringList-test g xs)
+
+generate : (g : Grammar) (stream : Stream ℕ _) .{{_ : NonZero (length (g .rules))}} → ProgramString g ((lookup (g .rules) (ℕtoFin (head stream) (g .rules))) .lhs)
+generate g stream with filter-grammar-index g ((lookup (g .rules) (ℕtoFin (head stream) (g .rules))) .lhs)
+... | [] = {!!} -- don't know how to handle this. Maybe?
+... | i ∷ is = {!!}

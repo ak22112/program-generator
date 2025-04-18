@@ -26,6 +26,9 @@ private
 randoms<n : (n : ℕ) .{{_ : NonZero n}} → Stream ℕ _
 randoms<n n = map (Range.val ∘ λ x → clamp 0 n x) (stream glibc 0)
 
+randoms : (seed : ℕ) → Stream ℕ _
+randoms seed = stream glibc seed
+
 -- example recursive function
 -- num is the recursion variable
 -- i is a state variable to track which element of the stream is being accessed
