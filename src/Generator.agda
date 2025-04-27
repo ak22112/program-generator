@@ -32,8 +32,10 @@ open Grammar.Grammar          -- .rules
 
 -- forward declaration (this is to allow mutual recursive functions)
 data ProgramString  (g : Grammar) : NonTerminal → Set
-data StringList     (g : Grammar) : List Symbol → Set
+data ProgramString′ (g : Grammar) : NonTerminal → Set
 
+data StringList     (g : Grammar) : List Symbol → Set
+data StringList′    (g : Grammar) : List Symbol → Set
 
 data ProgramString g where
 
@@ -41,6 +43,15 @@ data ProgramString g where
        → let r = lookup (g .rules) i in
          (ys : StringList g (r .rhs))
        → ProgramString g (r .lhs)
+
+
+data ProgramString′ g where
+
+  prod′ : (x : NonTerminal)
+        → (xs : List Symbol)
+        → (prf : (rule x xs) ∈ (g .rules))
+        → (ys : StringList′ g xs)
+        → ProgramString′ g x
    
 
 data StringList g where
@@ -60,6 +71,25 @@ data StringList g where
        → (xs : List Symbol)
        → StringList g xs
        → StringList g (T x ∷ xs)
+
+
+data StringList′ g where
+
+  -- empty list
+  nil′  : StringList′ g []
+
+  -- list where first element is a non-terminal, followed by a list xs of symbols
+  cons′ : {x : NonTerminal}
+       → (xs : List Symbol)
+       → ProgramString′ g x
+       → StringList′ g xs
+       → StringList′ g (N x ∷ xs)
+
+  -- list where first element is a terminal, followed by a list xs of symbols
+  skip′ : {x : Terminal}
+       → (xs : List Symbol)
+       → StringList′ g xs
+       → StringList′ g (T x ∷ xs)
 
 
 
@@ -88,6 +118,32 @@ extract = concat ∘ extractStringList
     processStringList {_} {xs} (cons _ p rest) = extractTerminals xs ++ extractStringList p ++ processStringList rest
 
 
+-- get actual string
+extract′ : {g : Grammar} {x : NonTerminal} → ProgramString′ g x → String
+extract′ = concat ∘ extractStringList
+  where
+  extractStringList : {g : Grammar} {x : NonTerminal} → ProgramString′ g x → List String
+  extractStringList (prod′ _ _ _ ys) = processStringList ys
+    where
+    extractTerminals : List Symbol → List String
+    extractTerminals []         = []
+    extractTerminals (T t ∷ xs) = t .name ∷ extractTerminals xs  -- extract terminal symbols
+    extractTerminals (N _ ∷ xs) = extractTerminals xs            -- ignore nonterminal
+
+    -- process StringList; extract terminal symbols and expand nonterminals
+    processStringList : {g : Grammar} {xs : List Symbol} → StringList′ g xs → List String
+
+    -- empty StringList; return empty list
+    processStringList {_} {_}  nil′             = []
+
+    -- skip symbol; extract terminals and continue processing
+    processStringList {_} {xs} (skip′ _ rest)   = extractTerminals xs ++ processStringList rest
+
+    -- expand nonterminal; extract terminals, process the nonterminal, and continue
+    processStringList {_} {xs} (cons′ _ p rest) = extractTerminals xs ++ extractStringList p ++ processStringList rest
+
+
+
 -- concrete examples --
 
 -- grammar
@@ -101,6 +157,89 @@ G = grammar
       rule (nonTerm "Y") (T (term "d") ∷ [])                   ∷    -- Y → d
       []
     )
+
+open import Data.Product
+
+lookup-with-prf : {A : Set} (xs : List A) (i : Fin (length xs)) → Σ[ x ∈ A ] (x ∈ xs)
+lookup-with-prf (x ∷ xs) zero = x , here refl
+lookup-with-prf (x ∷ xs) (suc i) with lookup-with-prf xs i
+... | fst , snd = fst , there snd
+
+
+tail′ : {A : Set} → List A → List A
+tail′ []       = []      
+tail′ (_ ∷ xs) = xs
+
+get-rest-rhs : ℕ → List Symbol
+get-rest-rhs n = tail′ ((lookup-rule G (ℕtoFin n (G .rules))) .rhs)
+
+get-rule : ℕ → Rule
+get-rule n = lookup-rule G (ℕtoFin n (G .rules))
+
+getRHS : ℕ → List Symbol
+getRHS n = (get-rule n) .rhs
+
+rest-rhs : (r : Rule) → List Symbol
+rest-rhs r = tail′ (r .rhs)
+
+
+z : ProgramString′ G (nonTerm "X")
+z = prod′ ((xax .proj₁) .lhs) ((xax .proj₁) .rhs) (xax .proj₂) (skip′ (rest-rhs (xax .proj₁))
+          (cons′ (rest-rhs (xe .proj₁)) (prod′ (nonTerm "X") ((xe .proj₁) .rhs) (xe .proj₂) nil′) nil′))
+  where
+  xax : Σ-syntax Rule (λ x → x ∈ G .rules)
+  xax = lookup-with-prf (G .rules) zero
+
+  xe : Σ[ r ∈ Rule ] (r ∈ G .rules)
+  xe  = lookup-with-prf (G .rules) (suc (suc zero))
+
+
+record RuleMatch (g : Grammar) (x : NonTerminal) : Set where
+
+  constructor rule-match
+
+  field
+    i     : Fin (length (g .rules))
+    r     : Rule
+    lhs≡x : x ≡ r .lhs
+    mem   : r ∈ g .rules
+
+open RuleMatch
+
+open import Relation.Nullary
+
+
+new-filter : (g : Grammar) (x : NonTerminal) → List (RuleMatch g x)
+new-filter g x = go (Data.List.allFin (length (g .rules)))
+  where
+    go : List (Fin (length (g .rules))) → List (RuleMatch g x)
+    go [] = []
+    go (i ∷ is) with lookup-with-prf (g .rules) i
+    ... | (r , mem) with x NonTerminal.≟ r .lhs
+    ... | yes eq = rule-match i r eq mem ∷ go is
+    ... | no _   = go is
+
+-- generate : (g : Grammar) (x : NonTerminal) (n : Fin (length (g .rules))) → ProgramString′ g x
+-- generate g x n with new-filter g x | lookup-with-prf (g .rules) n
+-- ...               | []             | fst , snd = {!!}
+-- ...               | i ∷ is         | fst , snd = {!!}
+
+
+-- mutual
+--   generate-stringlist : (g : Grammar) (x : NonTerminal) (rm : RuleMatch g x) → StringList′ g (rm .r .rhs)
+--   generate-stringlist g x rm = go (rm .r .rhs)
+--     where
+--       go : (xs : List Symbol) → StringList′ g xs
+--       go []         = nil′
+--       go (T t ∷ xs) = skip′ xs (go xs)
+--       go (N n ∷ xs) with new-filter g n
+--       ... | [] = {!!}
+--       ... | rm′ ∷ _ = cons′ xs (generate g n rm′) (go xs)
+
+
+--   generate : (g : Grammar) (x : NonTerminal) → RuleMatch g x → ProgramString′ g x
+--   generate g x rm = Eq.subst (λ lhs → ProgramString′ g lhs) (Eq.sym (rm .lhs≡x))
+--     (prod′ (rm .r .lhs) (rm .r .rhs) (rm .mem) (generate-stringlist g x rm))
 
 
 -- rules and programs
@@ -175,7 +314,7 @@ open import Relation.Nullary
 --   ... | i ∷ is = let
 --       rand  = head stream
 --       index = ℕtoFin rand (i ∷ is)
---       rule  = lookup-rule g {!!}
+--       rule  = lookup-rule g i
 --     in
 --       {!!}
 
@@ -198,18 +337,18 @@ open import Relation.Nullary
 
 
 
-tail′ : {A : Set} → List A → List A
-tail′ []       = []      
-tail′ (_ ∷ xs) = xs
+-- tail′ : {A : Set} → List A → List A
+-- tail′ []       = []      
+-- tail′ (_ ∷ xs) = xs
 
-get-rest-rhs : ℕ → List Symbol
-get-rest-rhs n = tail′ ((lookup-rule G (ℕtoFin n (G .rules))) .rhs)
+-- get-rest-rhs : ℕ → List Symbol
+-- get-rest-rhs n = tail′ ((lookup-rule G (ℕtoFin n (G .rules))) .rhs)
 
-get-rule : ℕ → Rule
-get-rule n = lookup-rule G (ℕtoFin n (G .rules))
+-- get-rule : ℕ → Rule
+-- get-rule n = lookup-rule G (ℕtoFin n (G .rules))
 
-getRHS : ℕ → List Symbol
-getRHS n = (get-rule n) .rhs
+-- getRHS : ℕ → List Symbol
+-- getRHS n = (get-rule n) .rhs
 
 buildProd : (n : ℕ) → StringList G (getRHS n) → ProgramString G ((get-rule n) .lhs)
 buildProd n ys = prod (ℕtoFin n (G .rules)) ys
@@ -221,7 +360,7 @@ mutual
   stringList-test : (g : Grammar) (xs : List Symbol) → StringList g xs
   stringList-test g []         = nil
   stringList-test g (T x ∷ xs) = skip xs (stringList-test g xs)
-  stringList-test g (N x ∷ xs) = cons xs {!!} (stringList-test g xs)
+  stringList-test g (N x ∷ xs) = cons xs {!prod!} (stringList-test g xs)
 
   helper : {g : Grammar} (xs : List Symbol) (stream : Stream ℕ _) → StringList g xs
   helper []        stream = nil
@@ -237,3 +376,8 @@ mutual
                     with filter-grammar-index g (r .lhs)
   ... | []     = {!!} -- don't know how to handle this. Maybe?
   ... | i ∷ is = {!!} -- could just match is (no ∷)
+
+
+-- Y -> cY -> cd
+cd : ProgramString G (nonTerm "Y")
+cd = prod (suc (suc (suc zero))) (skip (N (nonTerm "Y") ∷ []) (cons [] (prod (suc (suc (suc (suc zero)))) (skip [] nil)) nil))

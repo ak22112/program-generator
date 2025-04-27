@@ -13,6 +13,14 @@ open import Range
 open import Codata.Sized.Stream as Stream using ( Stream; take )
 open import Data.Vec.Base using ( Vec; _∷_; [] )
 
+open import Data.List.NonEmpty using ( List⁺; toList; fromList; _∷_; [_] )
+open import Data.List.Membership.Propositional using ( _∈_ )
+open import Data.List.Relation.Unary.Any using ( here; there )
+open import Data.Product
+open import Data.Maybe
+
+open import Relation.Binary.PropositionalEquality using ( _≡_ )
+
 -------------------------------------------------------------
 -- Grammar type
 
@@ -22,13 +30,32 @@ record Grammar : Set where
   field
     rules : List Rule
 
+open Grammar
+
 -------------------------------------------------------------
 -- open records to make dot notation accessible
 
 open Rule.Rule    -- .lhs; .rhs
 open Range.Range  -- .val; .min≤val; .val<max
 
-open Grammar
+-- record Grammar′ : Set where
+
+--   constructor grammar′
+  
+--   field
+--     rules′   : List⁺ Rule
+--     nonTerms : List⁺ NonTerminal
+--     coverge  : ∀ x → x ∈ toList nonTerms → ∃[ r ] (r .lhs ≡ x × r ∈ toList rules′)
+
+-- open Grammar′
+
+-- -------------------------------------------------------------
+
+-- make : (rules : List⁺ Rule)
+--      → (nts : List⁺ NonTerminal)
+--      → Maybe (∀ x → x ∈ toList nts → ∃[ r ] (r .lhs ≡ x × r ∈ toList rules))
+
+-- make rules nts = {!!}
 
 -------------------------------------------------------------
 -- Lookup a rule in a grammar
@@ -79,24 +106,24 @@ safe-lookup-rule g n = lookup-in-bounds (g .rules) n
 -------------------------------------------------------------
 -- Examples
 
-xs : List ℕ
---   0   1   2
-xs = 4 ∷ 9 ∷ 2 ∷ 5 ∷ []
+-- xs : List ℕ
+-- --   0   1   2
+-- xs = 4 ∷ 9 ∷ 2 ∷ 5 ∷ []
 
-i : Fin (length xs)
-i = suc zero
+-- i : Fin (length xs)
+-- i = suc zero
 
-xs[i] : ℕ
-xs[i] = lookup xs i
+-- xs[i] : ℕ
+-- xs[i] = lookup xs i
 
-index0 : Fin (length xs)
-index0 = get-index 0 xs (s≤s z≤n)
+-- index0 : Fin (length xs)
+-- index0 = get-index 0 xs (s≤s z≤n)
 
-index1 : Fin (length xs)
-index1 = get-index 1 xs (s≤s (s≤s z≤n))
+-- index1 : Fin (length xs)
+-- index1 = get-index 1 xs (s≤s (s≤s z≤n))
 
-index2 : Fin (length xs)
-index2 = get-index 2 xs (s≤s (s≤s (s≤s z≤n)))
+-- index2 : Fin (length xs)
+-- index2 = get-index 2 xs (s≤s (s≤s (s≤s z≤n)))
 
-index3 : Fin (length xs)
-index3 = get-indexᵖ 3 xs
+-- index3 : Fin (length xs)
+-- index3 = get-indexᵖ 3 xs
